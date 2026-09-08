@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#22405e">
+<title>Notas por RA</title>
+<style>
+:root{--pa:#fbfaf7;--gr:#e4e8ef;--ink:#1e2a38;--so:#5c6b7c;--fa:#93a0ae;--ru:#d8dee7;--rd:#d5453f;--ac:#22405e;--ok:#2e8b5e;--am:#c88a16}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--pa);font-size:16px;line-height:1.45;padding-bottom:60px}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit;font-size:16px;color:inherit}
+.w{max-width:640px;margin:0 auto;padding:0 14px}
+.hide{display:none!important}
+header{position:sticky;top:0;z-index:20;background:var(--pa);border-bottom:1px solid var(--ru);padding-top:env(safe-area-inset-top)}
+h1{font-size:17px;font-weight:650;margin:0;padding:12px 0 8px 12px;border-left:2px solid var(--rd)}
+nav{display:flex}
+nav button{flex:1;background:none;border:0;border-bottom:2.5px solid transparent;padding:9px 2px 11px;font-size:13.5px;color:var(--so)}
+nav button.on{color:var(--ink);border-bottom-color:var(--ink);font-weight:650}
+h3{font-size:15.5px;font-weight:640;margin:0 0 8px}
+.card{background:#fff;border:1px solid var(--ru);border-radius:10px;padding:14px;margin:14px 0}
+.ch{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.ch button{border:1px solid var(--ru);background:#fff;border-radius:20px;padding:5px 11px;font-size:13px;color:var(--so)}
+.ch button.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:560}
+.ch button.ok{border-color:var(--ok);color:var(--ok)}
+.gr{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--gr)}
+.gr .n{flex:1;min-width:0;font-size:14px;overflow-wrap:anywhere}
+.gr input{width:62px;flex:none;border:1px solid var(--ru);border-radius:8px;padding:8px 6px;text-align:center;background:#fff}
+.gr .r{width:52px;flex:none;text-align:right;font-weight:650;font-variant-numeric:tabular-nums}
+.hd{display:flex;gap:8px;font-size:11.5px;color:var(--fa);font-weight:600;padding-bottom:4px}
+.hd .n{flex:1}.hd i{width:62px;flex:none;text-align:center;font-style:normal}.hd b{width:52px;flex:none;text-align:right;font-weight:600}
+
+.al{border-bottom:1px solid var(--gr);padding:12px 0}
+.al .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.al .t b{font-size:15px;font-weight:600}
+.al .t span{font-size:13px;font-weight:650}
+.ra{margin-top:8px}
+.ra .l{display:flex;justify-content:space-between;font-size:12px;color:var(--so);margin-bottom:2px}
+.tk{height:8px;border-radius:4px;background:var(--gr);overflow:hidden;position:relative}
+.tk i{display:block;height:100%;background:var(--ok)}
+.tk i.b{background:var(--rd)}
+.tk i.p{background:var(--am)}
+.bd{display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;background:var(--gr);color:var(--so)}
+.bd.s{background:var(--ok);color:#fff}.bd.f{background:var(--rd);color:#fff}
+.b{border:1px solid var(--ru);background:#fff;border-radius:10px;padding:9px 12px;font-size:13.5px;font-weight:560}
+.b.p{background:var(--ac);border-color:var(--ac);color:#fff}
+.b.d{color:var(--rd);border-color:#f0c9c7}
+.rw{display:flex;gap:8px;flex-wrap:wrap}
+.hi{font-size:12.5px;color:var(--fa);line-height:1.5;margin:8px 0 0}
+textarea{width:100%;min-height:80px;border:1px solid var(--ru);border-radius:9px;padding:10px;background:#fff}
+.ir{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.ir input{flex:1;min-width:0;border:1px solid var(--ru);border-radius:8px;padding:9px 10px;background:#fff}
+.ir .x{background:none;border:0;color:var(--fa);font-size:18px;padding:2px 6px}
+.mt{font-size:12.5px;color:var(--so)}
+.mt table{border-collapse:collapse;width:100%;margin-top:6px}
+.mt td,.mt th{border:1px solid var(--gr);padding:4px 5px;text-align:center;font-weight:400}
+.mt th{font-weight:650;background:#fff}
+.ts{position:fixed;left:50%;bottom:18px;transform:translate(-50%,18px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:22px;font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.ts.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<header><div class="w"><h1>Notas por resultados de aprendizaje</h1>
+<nav><button class="on" data-v="ut">Meter notas</button><button data-v="al">Avance</button><button data-v="aj">Ajustes</button></nav>
+
+</div></header>
+<main class="w">
+<section id="v-ut">
+<div class="card"><h3>Unidad de trabajo</h3><div class="ch" id="utc"></div>
+<p class="hi" id="uti"></p></div>
+<div class="card"><div class="hd"><span class="n">Alumno</span><i>Examen</i><i>Tarea</i><b>UT</b></div>
+<div id="grid"></div>
+<p class="hi">Deja en blanco lo que aún no hayas evaluado. Escribe 0 en lo no entregado.</p></div>
+</section>
+<section id="v-al" class="hide">
+<div class="rw" style="margin:14px 0"><button class="b" id="cpt">Copiar tabla para Excel</button></div>
+<div id="alist"></div>
+</section>
+<section id="v-aj" class="hide">
+<div class="card"><h3>Alumnos</h3><div id="slist"></div>
+<textarea id="pl" placeholder="Pega aquí la lista, un alumno por línea"></textarea>
+<div class="rw" style="margin-top:8px"><button class="b" id="pb">Añadir alumnos</button></div></div>
+<div class="card"><h3>Reglas de cálculo</h3>
+<div class="ir">Examen <input id="pe" type="number" min="0" max="100" style="max-width:80px"> % y el resto tarea</div>
+<div class="ir"><label><input type="checkbox" id="gate"> El módulo solo se supera con un 5 en cada RA</label></div>
+<p class="hi">La nota de cada UT es la media ponderada de examen y tarea. Esa nota se reparte a los RA según los criterios de evaluación de la programación.</p></div>
+<div class="card"><h3>Matriz RA por unidad</h3>
+<div class="mt" id="mtx"></div>
+<p class="hi">Los números son criterios de evaluación trabajados en esa unidad. Es el peso con que cada UT entra en el RA.</p></div>
+<div class="card"><h3>Copia de seguridad</h3>
+<div class="rw"><button class="b" id="cpb">Copiar mis datos</button><button class="b" id="rsb">Restaurar</button></div>
+<textarea id="bk" class="hide"></textarea>
+<button class="b d" id="wp" style="margin-top:10px">Borrar todas las notas</button></div>
+</section>
+</main>
+<div class="ts" id="ts"></div>
+<script>
+
+var K='notas-mpp-v1';
+var UT=[
+{n:'UT1 Infraestructura y organización',t:1,w:{RA4:10,RA3:1}},
+{n:'UT2 Harina, agua y sal',t:1,w:{RA1:6}},
+{n:'UT3 Agentes leudantes, huevo',t:1,w:{RA1:2,RA3:3}},
+{n:'UT4 Edulcorantes',t:2,w:{RA1:5}},
+{n:'UT5 Leche y lácteos',t:2,w:{RA1:5}},
+{n:'UT6 Grasas, cacao y chocolate',t:2,w:{RA1:6}},
+{n:'UT7 Frutas, verduras y hongos',t:2,w:{RA1:4}},
+{n:'UT8 Ingredientes tecnológicos',t:2,w:{RA1:3}},
+{n:'UT9 Elaboración de pan',t:1,w:{RA3:4}},
+{n:'UT10 Bollería, pastelería y galletas',t:3,w:{RA2:7}},
+{n:'UT11 Confitería, turrones y mazapanes',t:3,w:{RA2:5}},
+{n:'UT12 Chocolate y heladería',t:3,w:{RA2:2,RA3:2}},
+{n:'UT13 Conservación y análisis sensorial',t:3,w:{RA5:7,RA1:2}}];
+var RA=[['RA1','Materias primas y auxiliares',0.033],['RA2','Productos de panadería y pastelería',0],['RA3','Procesos de elaboración',0.022],['RA4','Equipos e instalaciones',0],['RA5','Procesos de conservación',0.028]];
+var S={al:[],n:{},rec:{},emp:{},pe:50,gate:true};
+var V='ut',ut=0;
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){tos('No se ha podido guardar')}}
+function load(){try{var v=localStorage.getItem(K);if(v){var d=JSON.parse(v);for(var k in d)S[k]=d[k]}}catch(e){}}
+function tos(m){var t=$('ts');t.textContent=m;t.className='ts on';setTimeout(function(){t.className='ts'},2400)}
+function num(v){if(v===''||v===null||v===undefined)return null;var x=parseFloat(String(v).replace(',','.'));return isNaN(x)?null:x}
+function cell(u,a){return S.n[u+'|'+a]||{}}
+function utNota(u,a){var c=cell(u,a);
+if(c.e===null||c.e===undefined||c.t===null||c.t===undefined)return null;
+return (c.e*S.pe+c.t*(100-S.pe))/100}
+function total(ra){var s=0;for(var i=0;i<UT.length;i++)if(UT[i].w[ra])s+=UT[i].w[ra];return s}
+function raCalc(a,ra,empW){var acc=0,pe=0,tot=total(ra);
+for(var i=0;i<UT.length;i++){var w=UT[i].w[ra];if(!w)continue;var n=utNota(i,a);
+if(n!==null){acc+=n*w;pe+=w}}
+
+var centro=pe?acc/pe:null,pct=tot?Math.round(pe/tot*100):0;
+var fin=centro;
+if(centro!==null&&empW&&S.emp[a]!==undefined&&S.emp[a]!==null)fin=centro*(1-empW)+S.emp[a]*empW;
+var r=S.rec[ra+'|'+a];
+if(r!==undefined&&r!==null&&(fin===null||r>fin))fin=r;
+return{c:centro,f:fin,pct:pct,pe:pe,tot:tot}}
+function modulo(a){var ns=[],full=true,low=false;
+for(var i=0;i<RA.length;i++){var r=raCalc(a,RA[i][0],RA[i][2]);
+if(r.pct<100||r.f===null)full=false;
+if(r.f!==null&&r.f<5)low=true;
+if(r.f!==null)ns.push(r.f)}
+var med=ns.length?ns.reduce(function(x,y){return x+y},0)/ns.length:null;
+return{m:med,full:full,low:low}}
+function rut(){
+$('utc').innerHTML=UT.map(function(u,i){
+var done=0;for(var a=0;a<S.al.length;a++)if(utNota(i,a)!==null)done++;
+return '<button data-u="'+i+'" class="'+(i===ut?'on':'')+(done&&done===S.al.length?' ok':'')+'">'+esc(u.n.split(' ')[0])+'</button>'}).join('');
+var bs=$('utc').querySelectorAll('button');
+for(var i=0;i<bs.length;i++)bs[i].onclick=function(){ut=+this.getAttribute('data-u');rut()};
+var u=UT[ut],ws=[];for(var r in u.w)ws.push(r+' ('+u.w[r]+')');
+$('uti').innerHTML='<b>'+esc(u.n)+'</b><br>Trimestre '+u.t+' · aporta a '+ws.join(' y ');
+$('grid').innerHTML=S.al.length?S.al.map(function(nm,a){var c=cell(ut,a),n=utNota(ut,a);
+return '<div class="gr"><span class="n">'+esc(nm)+'</span>'+
+'<input type="number" step="0.01" min="0" max="10" data-f="e" data-a="'+a+'" value="'+(c.e===undefined||c.e===null?'':c.e)+'">'+
+'<input type="number" step="0.01" min="0" max="10" data-f="t" data-a="'+a+'" value="'+(c.t===undefined||c.t===null?'':c.t)+'">'+
+'<span class="r" style="color:'+(n===null?'var(--fa)':(n<5?'var(--rd)':'var(--ok)'))+'">'+(n===null?'—':n.toFixed(2))+'</span></div>'}).join(''):'<p class="hi">Añade alumnos en Ajustes.</p>';
+var is=$('grid').querySelectorAll('input');
+for(var i=0;i<is.length;i++)is[i].onchange=function(){
+var a=this.getAttribute('data-a'),f=this.getAttribute('data-f'),k=ut+'|'+a;
+var o=S.n[k]||(S.n[k]={});var v=num(this.value);
+if(v===null)delete o[f];else o[f]=Math.max(0,Math.min(10,v));
+save();rut()}}
+
+function ral(){
+$('alist').innerHTML=S.al.length?S.al.map(function(nm,a){
+var md=modulo(a);
+var est=md.full?(md.low?'<span class="bd f">No superado</span>':'<span class="bd s">Superado</span>':'')||'':'<span class="bd">En curso</span>';
+if(md.full)est=md.low?'<span class="bd f">No superado</span>':'<span class="bd s">Superado</span>';
+var bars=RA.map(function(r){var x=raCalc(a,r[0],r[2]);
+var col=x.f===null?'p':(x.f<5?'b':'');
+return '<div class="ra"><div class="l"><span>'+r[0]+' · '+esc(r[1])+'</span><span>'+(x.f===null?'—':x.f.toFixed(2))+' · '+x.pct+'%</span></div>'+
+'<div class="tk"><i class="'+col+'" style="width:'+x.pct+'%"></i></div></div>'}).join('');
+return '<div class="al"><div class="t"><b>'+esc(nm)+'</b><span>'+(md.m===null?'—':md.m.toFixed(2))+' '+est+'</span></div>'+bars+'</div>'}).join(''):'<p class="hi">Sin alumnos todavía.</p>'}
+function raj(){
+$('slist').innerHTML=S.al.map(function(nm,a){
+return '<div class="ir"><input value="'+esc(nm)+'" data-sn="'+a+'"><input type="number" step="0.01" placeholder="Empresa" style="max-width:92px" data-em="'+a+'" value="'+(S.emp[a]===undefined?'':S.emp[a])+'"><button class="x" data-sd="'+a+'">&times;</button></div>'}).join('');
+bindc('sn',function(e,i){S.al[i]=e.value.trim()||S.al[i]});
+bindc('em',function(e,i){var v=num(e.value);if(v===null)delete S.emp[i];else S.emp[i]=v});
+clk('sd',function(i){if(!confirm('¿Quitar a este alumno y sus notas?'))return;
+S.al.splice(i,1);var n2={};for(var k in S.n){var p=k.split('|'),a=+p[1];
+if(a==i)continue;n2[p[0]+'|'+(a>i?a-1:a)]=S.n[k]}S.n=n2;save();rall()});
+$('pe').value=S.pe;$('gate').checked=!!S.gate;
+var h='<table><tr><th>UT</th>'+RA.map(function(r){return '<th>'+r[0]+'</th>'}).join('')+'</tr>';
+for(var i=0;i<UT.length;i++){h+='<tr><td style="text-align:left">'+esc(UT[i].n.split(' ')[0])+'</td>';
+for(var j=0;j<RA.length;j++)h+='<td>'+(UT[i].w[RA[j][0]]||'')+'</td>';h+='</tr>'}
+h+='<tr><th>Total</th>'+RA.map(function(r){return '<th>'+total(r[0])+'</th>'}).join('')+'</tr></table>';
+$('mtx').innerHTML=h}
+function bindc(at,fn){var es=document.querySelectorAll('[data-'+at+']');
+for(var i=0;i<es.length;i++)es[i].onchange=function(){fn(this,+this.getAttribute('data-'+at));save();rall()}}
+function clk(at,fn){var es=document.querySelectorAll('[data-'+at+']');
+for(var i=0;i<es.length;i++)es[i].onclick=function(){fn(+this.getAttribute('data-'+at))}}
+$('pe').onchange=function(){var v=num(this.value);S.pe=(v===null?50:Math.max(0,Math.min(100,v)));save();rall()};
+$('gate').onchange=function(){S.gate=this.checked;save();rall()};
+$('pb').onclick=function(){var l=$('pl').value.split('\n');
+for(var i=0;i<l.length;i++){var n=l[i].trim();if(n)S.al.push(n)}
+
+$('pl').value='';save();rall();tos('Alumnos añadidos')};
+function tabla(){var o='RESUMEN POR RA\nAlumno\t'+RA.map(function(r){return r[0]+' nota\t'+r[0]+' % evaluado'}).join('\t')+'\tMedia\tEstado\n';
+S.al.forEach(function(nm,a){var md=modulo(a);o+=nm;
+RA.forEach(function(r){var x=raCalc(a,r[0],r[2]);
+o+='\t'+(x.f===null?'':x.f.toFixed(2))+'\t'+x.pct});
+o+='\t'+(md.m===null?'':md.m.toFixed(2))+'\t'+(md.full?(md.low&&S.gate?'No superado':'Superado'):'En curso')+'\n'});
+o+='\nNOTAS POR UNIDAD\nAlumno\t'+UT.map(function(u){return u.n.split(' ')[0]+' Ex\t'+u.n.split(' ')[0]+' Tarea\t'+u.n.split(' ')[0]+' Nota'}).join('\t')+'\n';
+S.al.forEach(function(nm,a){o+=nm;
+UT.forEach(function(u,i){var c=cell(i,a),n=utNota(i,a);
+o+='\t'+(c.e===undefined?'':c.e)+'\t'+(c.t===undefined?'':c.t)+'\t'+(n===null?'':n.toFixed(2))});o+='\n'});
+return o}
+function cp(t,m){if(navigator.clipboard&&navigator.clipboard.writeText){
+navigator.clipboard.writeText(t).then(function(){tos(m)},function(){pop(t)})}else pop(t)}
+function pop(t){var a=$('bk');a.className='';a.value=t;a.focus();a.select();tos('Copia el texto a mano')}
+$('cpt').onclick=function(){cp(tabla(),'Tabla copiada')};
+$('cpb').onclick=function(){cp(JSON.stringify(S),'Copia hecha. Pégala en un correo')};
+$('rsb').onclick=function(){var a=$('bk');
+if(a.className==='hide'){a.className='';tos('Pega la copia y pulsa Restaurar otra vez');return}
+try{var d=JSON.parse(a.value);if(!d.al)throw 0;S=d;save();a.className='hide';a.value='';rall();tos('Restaurado')}
+catch(e){tos('Ese texto no es una copia válida')}};
+$('wp').onclick=function(){if(!confirm('Se borran todas las notas. ¿Seguro?'))return;
+S.n={};S.rec={};save();rall();tos('Notas borradas')};
+function rall(){if(V==='ut')rut();if(V==='al')ral();if(V==='aj')raj()}
+var ns=document.querySelectorAll('nav button');
+for(var i=0;i<ns.length;i++)ns[i].onclick=function(){V=this.getAttribute('data-v');
+for(var j=0;j<ns.length;j++)ns[j].className=ns[j].getAttribute('data-v')===V?'on':'';
+['ut','al','aj'].forEach(function(x){$('v-'+x).className=x===V?'':'hide'});
+window.scrollTo(0,0);rall()};
+load();rall();
+</script>
+</body>
+</html>
