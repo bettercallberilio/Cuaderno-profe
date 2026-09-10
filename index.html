@@ -1,3818 +1,801 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#22405e">
-<title>Cuaderno de aula</title>
-<style>
-:root{--pa:#fbfaf7;--gr:#e4e8ef;--ink:#1e2a38;--so:#5c6b7c;--fa:#93a0ae;--ru:#d8dee7;--rd:#d5453f;--am:#f2c230;--pk:#e4577e;--az:#3d89cc;--ve:#56b25f;--ac:#22405e;--ok:#2e8b5e;--la:#c88a16}
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--pa);font-size:16px;line-height:1.45;padding-bottom:70px;-webkit-font-smoothing:antialiased}
-button{font:inherit;color:inherit;cursor:pointer}
-input,textarea,select{font:inherit;font-size:16px;color:inherit}
-.w{max-width:640px;margin:0 auto;padding:0 14px}
-.hide{display:none!important}
-header{position:sticky;top:0;z-index:20;background:var(--pa);border-bottom:1px solid var(--ru);padding-top:env(safe-area-inset-top)}
-h1{font-size:16px;font-weight:650;margin:0;padding:11px 0 7px 12px;border-left:2px solid var(--rd)}
-nav{display:flex}
-nav button{flex:1;background:none;border:0;border-bottom:2.5px solid transparent;padding:9px 1px 11px;font-size:12.5px;color:var(--so)}
-nav button.on{color:var(--ink);border-bottom-color:var(--ink);font-weight:650}
-h2{font-size:22px;font-weight:640;margin:16px 0 6px}
-h3{font-size:15.5px;font-weight:640;margin:0 0 8px}
-.mb{display:flex;align-items:center;justify-content:space-between;margin:16px 0 4px}
-.ar{width:38px;height:38px;border:1px solid var(--ru);border-radius:50%;background:#fff;font-size:17px}
-.dw,.gd{display:grid;grid-template-columns:repeat(7,1fr)}
-.dw div{text-align:center;font-size:12px;color:var(--fa);font-weight:600}
-.dw div.on{color:var(--ink)}
-.gd{gap:2px}
-.cl{aspect-ratio:1;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
-.cl.em{visibility:hidden}
-.nu{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;font-size:15.5px;font-weight:520}
-.we .nu{color:var(--pk)}.of .nu{color:var(--fa);font-weight:400}
-.cd .nu{background:#fff;box-shadow:inset 0 0 0 1px var(--ru);font-weight:650}
-.m-inicio .nu{background:var(--am);color:#3b2c00;font-weight:700;box-shadow:none}
-.m-fin .nu{background:var(--pk);color:#fff;font-weight:700;box-shadow:none}
-.m-festivo .nu{background:var(--az);color:#fff;font-weight:700;box-shadow:none}
-.m-libre .nu{background:var(--ve);color:#fff;font-weight:700;box-shadow:none}
-.td .nu{box-shadow:0 0 0 2.5px var(--ink)}
-.dt{display:flex;gap:3px;height:5px}.dt i{width:5px;height:5px;border-radius:50%}
-.lg{display:flex;flex-wrap:wrap;gap:6px 12px;margin:14px 0;padding-top:12px;border-top:1px solid var(--ru)}
-.lg span{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--so)}
-.lg i{width:13px;height:13px;border-radius:4px}
-.st{display:flex;border:1px solid var(--ru);border-radius:10px;background:#fff;overflow:hidden;margin-top:12px}
-.st div{flex:1;padding:11px 6px;text-align:center;border-right:1px solid var(--ru)}
-.st div:last-child{border:0}
-.st b{display:block;font-size:20px;font-weight:650}
-.st small{font-size:11.5px;color:var(--fa);display:block;line-height:1.2}
-.bar{display:flex;gap:8px;align-items:center;margin:16px 0 8px}
-.bar input[type=date]{flex:1;min-width:0;border:1px solid var(--ru);border-radius:9px;padding:9px 10px;background:#fff}
-.tg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.tg span{font-size:12px;padding:3px 9px;border-radius:20px;background:#fff;border:1px solid var(--ru);color:var(--so)}
-.tg span.k{background:var(--ink);border-color:var(--ink);color:#fff}
-.card{background:#fff;border:1px solid var(--ru);border-radius:10px;padding:14px;margin-bottom:12px}
-.lb{font-size:12.5px;color:var(--fa);font-weight:600;margin:12px 0 6px}
-.ch{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.ch button{border:1px solid var(--ru);background:#fff;border-radius:20px;padding:5px 11px;font-size:13px;color:var(--so)}
-.ch button.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:560}
-.ch button.ok{border-color:var(--ok);color:var(--ok)}
-textarea{width:100%;min-height:90px;border:1px solid var(--ru);border-radius:10px;padding:11px;background:#fff;resize:vertical}
-.rw{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
-.b{border:1px solid var(--ru);background:#fff;border-radius:10px;padding:10px 12px;font-weight:580;font-size:14px;text-align:center}
-.b.g{flex:1}
-.b.p{background:var(--ac);border-color:var(--ac);color:#fff}
-.b.r{background:var(--pk);border-color:var(--pk);color:#fff}
-.b.d{color:var(--rd);border-color:#f0c9c7}
-.hi{font-size:12.5px;color:var(--fa);margin:8px 0 0;line-height:1.5}
-.sr{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--gr)}
-.sr .n{flex:1;min-width:0;font-size:14.5px;overflow-wrap:anywhere}
-.mk{display:flex;gap:3px}
-.mk button{width:33px;height:33px;padding:0;border:1px solid var(--ru);border-radius:8px;background:#fff;font-size:13px;font-weight:700;color:var(--fa)}
-.mk button.P{background:var(--ok);border-color:var(--ok);color:#fff}
-.mk button.R{background:var(--la);border-color:var(--la);color:#fff}
-.mk button.F{background:var(--rd);border-color:var(--rd);color:#fff}
-.mk button.J{background:var(--fa);border-color:var(--fa);color:#fff}
-.en{position:relative;background:#fff;border:1px solid var(--ru);border-radius:10px;padding:10px 32px 10px 14px;margin-bottom:8px;overflow:hidden}
-.en i.bl{position:absolute;left:0;top:0;bottom:0;width:4px}
-.en .h{font-size:12px;color:var(--fa);margin-bottom:3px}
-.en .t{font-size:15px;white-space:pre-wrap}
-.en .x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--fa);font-size:17px;padding:4px 8px}
-.dh{font-size:14px;font-weight:650;margin:16px 0 6px}
-.al{font-size:13px;color:var(--so);background:#fff;border:1px solid var(--ru);border-radius:10px;padding:9px 12px;margin-bottom:8px}
-.ir{display:flex;gap:8px;margin-bottom:8px;align-items:center}
-.ir input{flex:1;min-width:0;border:1px solid var(--ru);border-radius:8px;padding:9px 10px;background:#fff}
-.ir .x{background:none;border:0;color:var(--fa);font-size:18px;padding:2px 6px}
-.wd{display:flex;gap:4px;flex-wrap:wrap}
-.wd button{width:40px;height:40px;border:1px solid var(--ru);border-radius:9px;background:#fff;font-weight:650;color:var(--fa)}
-.wd button.on{background:var(--ink);border-color:var(--ink);color:#fff}
-.su{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--gr)}
-.su .n{flex:1;min-width:0;font-size:14.5px}
-.su small{display:block;font-size:12px;color:var(--fa)}
-.su b{font-size:17px;font-weight:650}
-.tk{height:7px;border-radius:4px;background:var(--gr);overflow:hidden}
-.tk i{display:block;height:100%;background:var(--ok)}
-.tk i.b{background:var(--rd)}.tk i.p{background:var(--la)}
-.ep{color:var(--fa);font-size:14px;padding:10px 0;line-height:1.5}
-.ri{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--gr);font-size:13.5px}
-.ri i{width:11px;height:11px;border-radius:3px;flex:none}
-.ri span{flex:1;min-width:0}
-.ri small{display:block;color:var(--fa);font-size:12px}
-.hd{display:flex;gap:8px;font-size:11.5px;color:var(--fa);font-weight:600;padding-bottom:4px}
-.hd .n{flex:1}.hd i{width:60px;flex:none;text-align:center;font-style:normal}.hd b{width:50px;flex:none;text-align:right;font-weight:600}
-.gg{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--gr)}
-.gg .n{flex:1;min-width:0;font-size:14px;overflow-wrap:anywhere}
-.gg input{width:60px;flex:none;border:1px solid var(--ru);border-radius:8px;padding:8px 4px;text-align:center;background:#fff}
-.gg .r{width:50px;flex:none;text-align:right;font-weight:650}
-.av{border-bottom:1px solid var(--gr);padding:12px 0}
-.av .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.av .t b{font-size:15px;font-weight:600}
-.ral{margin-top:8px}
-.ral .l{display:flex;justify-content:space-between;font-size:12px;color:var(--so);margin-bottom:2px;gap:8px}
-.bd{display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;background:var(--gr);color:var(--so)}
-.bd.s{background:var(--ok);color:#fff}.bd.f{background:var(--rd);color:#fff}
-.mt table{border-collapse:collapse;width:100%;margin-top:6px;font-size:12px}
-.mt td,.mt th{border:1px solid var(--gr);padding:4px 3px;text-align:center;font-weight:400}
-.mt th{font-weight:650}
-.ts{position:fixed;left:50%;bottom:18px;transform:translate(-50%,18px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:22px;font-size:14px;opacity:0;pointer-events:none;transition:.2s;max-width:90vw;text-align:center;z-index:60}
-.ts.on{opacity:1;transform:translate(-50%,0)}
-.trkgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}
-.trkmetric{border:1px solid var(--gr);border-radius:9px;padding:10px;background:var(--pa)}
-.trkmetric b{display:block;font-size:20px;font-weight:650}
-.trkmetric small{font-size:11.5px;color:var(--fa);line-height:1.25}
-.delta{font-weight:700}.delta.ok{color:var(--ok)}.delta.bad{color:var(--rd)}.delta.mid{color:var(--la)}
-.progline{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--so);margin:8px 0 3px}
-.progbar{height:9px;border-radius:5px;background:var(--gr);overflow:hidden}
-.progbar i{display:block;height:100%;background:var(--ok)}
-.mtable{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
-.mtable th,.mtable td{padding:6px 4px;border-bottom:1px solid var(--gr);text-align:right}
-.mtable th:first-child,.mtable td:first-child{text-align:left}
-.mtable tr.now{font-weight:650;background:var(--pa)}
-.noteinfo{font-size:12.5px;color:var(--so);background:var(--pa);border-left:3px solid var(--ac);padding:8px 10px;margin:8px 0;border-radius:0 7px 7px 0}
-.alertbox{background:#fff7e7;border:1px solid #ecd59f;border-radius:10px;padding:11px 12px;margin:12px 0;font-size:13.5px}
-.alertbox b{display:block;margin-bottom:3px}
-.ttday{margin:14px 0 6px;font-size:15px;font-weight:650}
-.ttrow{display:grid;grid-template-columns:86px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--gr);align-items:start}
-.tttime{font-weight:700;font-size:13px}
-.ttsub{font-size:14px}.ttsub small{display:block;color:var(--fa);font-size:12px;margin-top:2px}
-.taskrow{border-bottom:1px solid var(--gr);padding:10px 0}.taskrow:last-child{border-bottom:0}
-.tasktop{display:flex;gap:8px;align-items:flex-start}.tasktop .n{flex:1;min-width:0}.tasktop b{font-size:14.5px}.tasktop small{display:block;color:var(--fa);font-size:12px}
-.taskdone{opacity:.55;text-decoration:line-through}
-.planhead{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:12px 0 8px}.planhead h2{margin:0}
-select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;padding:9px;background:#fff}
-</style>
-</head>
-<body>
 
-<header>
-<div class="w">
-<h1>Cuaderno de aula</h1>
-<nav>
-<button class="on" data-v="cal">Calendario</button>
-<button data-v="dia">Día</button>
-<button data-v="dia2">Diario</button>
-<button data-v="plan">Plan</button>
-<button data-v="not">Notas</button>
-<button data-v="aj">Ajustes</button>
-</nav>
-</div>
-</header>
+/* =========================================================
+   ALARMA GENERAL DE PENDIENTES
+   Cuaderno de aula
+   ========================================================= */
 
-<main class="w">
+(function(){
 
-<section id="v-cal">
-<div class="mb">
-<button class="ar" id="pm">&lsaquo;</button>
-<h2 id="mt"></h2>
-<button class="ar" id="nm">&rsaquo;</button>
-</div>
-<div class="dw" id="dw"></div>
-<div class="gd" id="gd"></div>
-<div class="st" id="stt"></div>
-<div id="homeAlerts"></div>
-<div class="rw">
-<button class="b g" id="ophor">Ver horario de clase</button>
-<button class="b g p" id="opseg">Ver desviaciones</button>
-</div>
-<div class="lg">
-<span><i style="background:#fff;box-shadow:inset 0 0 0 1px var(--ru)"></i>Con clase</span>
-<span><i style="background:var(--am)"></i>Inicio</span>
-<span><i style="background:var(--pk)"></i>Fin</span>
-<span><i style="background:var(--az)"></i>Festivo</span>
-<span><i style="background:var(--ve)"></i>No lectivo</span>
-</div>
-</section>
+var alarmaCSS = document.createElement('style');
 
-<section id="v-seg" class="hide">
-<div class="bar">
-<button class="b" id="backseg">&lsaquo; Calendario</button>
-<input type="date" id="segd">
-</div>
-<div class="card">
-<h3>Seguimiento de la programación</h3>
-<p class="hi" style="margin-top:0">Compara las sesiones registradas como <b>Lo trabajado</b> con la temporalización mensual prevista.</p>
-<div class="ch" id="segmods"></div>
-</div>
-<div id="segout"></div>
-</section>
-
-<section id="v-hor" class="hide">
-<div class="bar">
-<button class="b" id="backhor">&lsaquo; Calendario</button>
-</div>
-<div class="card">
-<h3>Horario de clase</h3>
-<p class="hi" style="margin-top:0">Horario semanal. Puedes añadir o quitar clases si cambia durante el curso.</p>
-<div id="horout"></div>
-</div>
-<div class="card">
-<h3>Añadir clase al horario</h3>
-<div class="ir">
-<select id="ttday" class="full">
-<option value="1">Lunes</option>
-<option value="2">Martes</option>
-<option value="3">Miércoles</option>
-<option value="4">Jueves</option>
-<option value="5">Viernes</option>
-</select>
-</div>
-<div class="ir">
-<input type="time" id="ttstart" value="08:15">
-<input type="time" id="ttend" value="09:05">
-</div>
-<div class="ir"><select id="ttsubj" class="full"></select></div>
-<div class="ir"><select id="ttgroup" class="full"></select></div>
-<button class="b p" id="ttadd">Añadir al horario</button>
-</div>
-</section>
-
-<section id="v-dia" class="hide">
-<div class="bar">
-<button class="ar" id="pd">&lsaquo;</button>
-<input type="date" id="dp">
-<button class="ar" id="nd">&rsaquo;</button>
-</div>
-<div class="tg" id="dtg"></div>
-
-<div class="card">
-<h3>Asistencia</h3>
-<div class="ch" id="ag"></div>
-<div id="alst"></div>
-<p class="hi" id="asum"></p>
-<div class="rw"><button class="b" id="allp">Todos presentes</button></div>
-<p class="hi">P presente · R retraso · F falta · J justificada.</p>
-</div>
-
-<div class="card">
-<h3>Qué ha pasado</h3>
-<div class="lb">Grupo</div><div class="ch" id="cg"></div>
-<div class="lb">Módulo</div><div class="ch" id="cm"></div>
-
-<div id="utbox" class="hide">
-<div class="lb">Unidad de trabajo</div>
-<div class="ch" id="cut"></div>
-<p class="hi" id="uth"></p>
-</div>
-
-<div id="sesbox" class="hide">
-<div class="lb">Sesiones impartidas</div>
-<div class="ir">
-<input id="ses" type="number" min="1" max="8" step="1" value="1">
-<span class="hi" style="margin:0">Número de horas/sesiones.</span>
-</div>
-</div>
-
-<div class="lb">Tipo</div>
-<div class="ch" id="ct"></div>
-<textarea id="tx" placeholder="Dicta o escribe lo trabajado, incidencias, tareas..."></textarea>
-<div class="rw">
-<button class="b g" id="mic">Dictar</button>
-<button class="b g p" id="sv">Guardar</button>
-</div>
-<p class="hi" id="mh"></p>
-</div>
-
-<div id="dent"></div>
-</section>
-
-<section id="v-dia2" class="hide">
-<div class="rw" style="margin:16px 0 8px">
-<button class="b g" id="cpd">Copiar diario</button>
-<button class="b g" id="cpt">Copiar asistencia</button>
-</div>
-<p class="hi" id="cst">Se pega en Excel con una columna por dato.</p>
-<div class="card">
-<h3>Resumen de asistencia</h3>
-<div class="ch" id="sg"></div>
-<div id="slst"></div>
-</div>
-<div id="dlst"></div>
-</section>
-
-<section id="v-plan" class="hide">
-
-<div class="planhead">
-<h2>Planificación</h2>
-<button class="b" id="notifbtn">Activar avisos</button>
-</div>
-
-<div id="planalerts"></div>
-
-<div class="ch" id="planpane">
-<button data-pp="week" class="on">Semana siguiente</button>
-<button data-pp="eval">Evaluaciones</button>
-</div>
-
-<div id="pp-week">
-
-<div class="card">
-<h3>Tareas para las próximas semanas</h3>
-<p class="hi" style="margin-top:0">Añade lo que tienes que preparar y la fecha límite. Los miércoles aparecerá el recordatorio de lo pendiente para la semana siguiente.</p>
-
-<div class="ir">
-<input id="taskdate" type="date">
-<select id="tasksubj" class="full"></select>
-</div>
-
-<div class="ir">
-<input id="tasktitle" placeholder="Ej. Preparar examen UT3">
-</div>
-
-<div class="ir">
-<input id="tasknote" placeholder="Nota opcional">
-</div>
-
-<button class="b p" id="taskadd">Añadir tarea</button>
-</div>
-
-<div class="card">
-<h3>Semana siguiente</h3>
-<div id="nextweek"></div>
-</div>
-
-<div class="card">
-<h3>Todas las tareas pendientes</h3>
-<div id="tasklist"></div>
-</div>
-
-</div>
-
-<div id="pp-eval" class="hide">
-
-<div class="card">
-<h3>Fechas de evaluación</h3>
-<p class="hi" style="margin-top:0">Al guardar una evaluación se genera el aviso tres días antes: “Poner examen de [asignatura]”.</p>
-
-<div class="ir">
-<input id="evaldate" type="date">
-<select id="evalsubj" class="full"></select>
-</div>
-
-<div class="ir">
-<select id="evalgroup" class="full"></select>
-</div>
-
-<div class="ir">
-<input id="evalnote" placeholder="Ej. UT1-UT3 / 1ª evaluación">
-</div>
-
-<button class="b p" id="evaladd">Guardar evaluación</button>
-</div>
-
-<div class="card">
-<h3>Próximas evaluaciones</h3>
-<div id="evallist"></div>
-</div>
-
-</div>
-</section>
-
-<section id="v-not" class="hide">
-
-<div class="ch" id="ng2" style="margin-top:16px"></div>
-<div class="ch" id="nmod"></div>
-<div id="nobody"></div>
-
-<div id="nwrap" class="hide">
-
-<div class="ch" id="npane"></div>
-
-<div id="pn-meter">
-<div class="card">
-<h3>Unidad de trabajo</h3>
-<div class="ch" id="utc"></div>
-<p class="hi" id="uti"></p>
-</div>
-
-<div class="card">
-<div class="hd">
-<span class="n">Alumno</span>
-<i>Examen</i>
-<i>Tarea</i>
-<b>UT</b>
-</div>
-<div id="ugrid"></div>
-<p class="hi">Deja en blanco lo que aún no has evaluado. Escribe 0 en lo no entregado.</p>
-</div>
-</div>
-
-<div id="pn-avance" class="hide">
-<div class="rw" style="margin-bottom:8px">
-<button class="b g" id="cpn">Copiar notas para Excel</button>
-</div>
-<div id="avlst"></div>
-</div>
-
-</div>
-</section>
-
-<section id="v-aj" class="hide">
-
-<div class="card" style="margin-top:14px">
-<h3>Días que tienes clase</h3>
-<p class="hi" style="margin:0 0 10px">Solo estos cuentan como jornada tuya.</p>
-<div class="wd" id="wd"></div>
-</div>
-
-<div class="card">
-<h3>Grupos y alumnos</h3>
-<div id="glst"></div>
-<div class="ir" style="margin-top:12px">
-<input id="ng" placeholder="Nuevo grupo">
-<button class="b" id="agb">Añadir</button>
-</div>
-</div>
-
-<div class="card">
-<h3>Módulos</h3>
-<div id="mlst"></div>
-<div class="ir" style="margin-top:10px">
-<input id="nmd" placeholder="Nuevo módulo">
-<button class="b" id="amb">Añadir</button>
-</div>
-<p class="hi">Los módulos con matriz configurada pueden calificarse en la pestaña Notas.</p>
-</div>
-
-<div class="card">
-<h3>Reglas de calificación</h3>
-<div class="ir">
-Examen
-<input id="pe" type="number" min="0" max="100" style="max-width:74px">
-% y el resto tarea
-</div>
-
-<div class="ir">
-Nota FFE de PVPP
-<input id="empn" type="number" min="0" max="10" step="0.01" style="max-width:74px">
-</div>
-
-<div class="ir">
-<label style="font-size:14px">
-<input type="checkbox" id="gate">
-El módulo solo se supera con un 5 en cada RA
-</label>
-</div>
-</div>
-
-<div class="card">
-<h3>Matriz de RA</h3>
-<div class="ch" id="mxsel"></div>
-<div class="mt" id="mtx"></div>
-</div>
-
-<div class="card">
-<h3>Calendario escolar</h3>
-<div id="rlst"></div>
-
-<div class="ir" style="margin-top:12px">
-<select id="rt" style="flex:1;border:1px solid var(--ru);border-radius:8px;padding:9px">
-<option value="libre">Vacaciones / no lectivo</option>
-<option value="festivo">Festivo</option>
-<option value="inicio">Inicio de curso</option>
-<option value="fin">Fin de curso</option>
-</select>
-</div>
-
-<div class="ir">
-<input id="rl" placeholder="Descripción">
-</div>
-
-<div class="ir">
-<input type="date" id="ra">
-<input type="date" id="rb">
-</div>
-
-<button class="b" id="arb">Añadir fecha</button>
-</div>
-
-<div class="card">
-<h3>Copia de seguridad</h3>
-<p class="hi" style="margin:0 0 10px">Copia el texto y guárdalo. Para restaurar, pégalo aquí.</p>
-<div class="rw">
-<button class="b g" id="cpb">Copiar mis datos</button>
-<button class="b g" id="rsb">Restaurar</button>
-</div>
-<textarea id="bk" class="hide" placeholder="Pega aquí la copia"></textarea>
-<button class="b d" id="wp" style="margin-top:10px">Borrar todo</button>
-</div>
-
-</section>
-
-</main>
-
-<div class="ts" id="ts"></div>
-
-<script>
-var K='cuaderno-v4',OLDK='cuaderno-v3';
-
-var CAL=[
-['inicio','2026-09-08','2026-09-08','Inicio Infantil y Primaria'],
-['inicio','2026-09-14','2026-09-14','Inicio ESO, Bach y FP'],
-['inicio','2026-09-21','2026-09-21','Inicio otras enseñanzas'],
-['inicio','2026-09-30','2026-10-01','Inicio régimen especial'],
-['festivo','2026-10-02','2026-10-02','San Saturio'],
-['libre','2026-10-05','2026-10-05','No lectivo'],
-['festivo','2026-10-12','2026-10-12','Fiesta Nacional'],
-['libre','2026-11-02','2026-11-02','No lectivo'],
-['libre','2026-11-30','2026-11-30','No lectivo'],
-['festivo','2026-12-07','2026-12-07','Constitución'],
-['festivo','2026-12-08','2026-12-08','Inmaculada'],
-['libre','2026-12-23','2027-01-08','Vacaciones de Navidad'],
-['festivo','2026-12-25','2026-12-25','Navidad'],
-['festivo','2027-01-01','2027-01-01','Año Nuevo'],
-['festivo','2027-01-06','2027-01-06','Reyes'],
-['libre','2027-02-04','2027-02-05','No lectivo'],
-['libre','2027-03-22','2027-04-02','Semana Santa'],
-['festivo','2027-03-25','2027-03-26','Jueves y Viernes Santo'],
-['festivo','2027-04-23','2027-04-23','Día de Castilla y León'],
-['festivo','2027-05-01','2027-05-01','Fiesta del Trabajo'],
-['fin','2027-05-21','2027-05-21','Fin 2º Bachillerato'],
-['fin','2027-05-28','2027-05-28','Fin FP y otras'],
-['fin','2027-06-17','2027-06-17','Fin ESO y 1º Bach'],
-['fin','2027-06-24','2027-06-24','Fin Infantil y Primaria']
-];
-
-var TY=[
-['contenido','Lo trabajado','#22405e'],
-['incidencia','Incidencia','#d5453f'],
-['tarea','Tarea','#b07a18'],
-['nota','Recordatorio','#6b7785']
-];
-
-var TN={inicio:'Inicio de curso',fin:'Fin de curso',festivo:'Festivo',libre:'No lectivo'};
-var TC={inicio:'#f2c230',fin:'#e4577e',festivo:'#3d89cc',libre:'#56b25f'};
-var MO=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-var DWN=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-var WD=[[1,'L'],[2,'M'],[3,'X'],[4,'J'],[5,'V'],[6,'S'],[0,'D']];
-
-var DEFAULT_GROUPS=[
-{
-n:'1º CFGM Panadería',
-st:[
-'Alvites Paredes, Vilma Jhannet',
-'Arias Blanco, Sonia',
-'De Francisco Jiménez, María Gemma',
-'Manzanillo Rincón, Alfonso',
-'Marcellus, Sandra',
-'Pacheco Villalobos, Rosario',
-'Sghir, Taoufik',
-'Sigcha González, David'
-]
-},
-{
-n:'2º CFGM Panadería',
-st:[
-'De Vizia, Jesica',
-'Raga Pérez, Idaira',
-'Rodrigo Moya, Laura',
-'Soto Suyo, Mariela',
-'Yang Yang, Huixin'
-]
-}
-];
-
-var DEFAULT_TIMETABLE=[
-{id:'h1',d:1,a:'08:15',b:'09:05',s:'Presentación y venta al público',g:'2º CFGM Panadería'},
-{id:'h2',d:1,a:'09:10',b:'10:00',s:'Innovación',g:'1º CFGM Panadería'},
-{id:'h3',d:1,a:'10:05',b:'10:55',s:'Materias primas',g:'1º CFGM Panadería'},
-{id:'h4',d:1,a:'11:20',b:'12:10',s:'Digitalización',g:'1º CFGM Panadería'},
-{id:'h5',d:2,a:'08:15',b:'09:05',s:'Materias primas',g:'1º CFGM Panadería'},
-{id:'h6',d:2,a:'09:10',b:'10:00',s:'Materias primas',g:'1º CFGM Panadería'},
-{id:'h7',d:3,a:'08:15',b:'09:05',s:'Materias primas',g:'1º CFGM Panadería'},
-{id:'h8',d:3,a:'09:10',b:'10:00',s:'Innovación',g:'1º CFGM Panadería'},
-{id:'h9',d:3,a:'11:20',b:'12:10',s:'Presentación y venta al público',g:'2º CFGM Panadería'}
-];
-
-var MX={
-
-'Materias primas':{
-ra:[
-['RA1','Materias primas y auxiliares',20,0],
-['RA2','Productos de panadería y pastelería',20,0],
-['RA3','Procesos de elaboración',20,0],
-['RA4','Equipos e instalaciones',20,0],
-['RA5','Procesos de conservación',20,0]
-],
-ut:[
-['UT1','Panadería y pastelería: infraestructura y organización',1,{RA3:2.22,RA4:20.00},10],
-['UT2','Harina, agua y sal',1,{RA1:2.61},12],
-['UT3','Agentes leudantes, huevo y ovoproductos',1,{RA1:1.38,RA3:6.66},10],
-['UT4','Edulcorantes',1,{RA1:2.47},10],
-['UT5','Leche, productos lácteos y bebidas',1,{RA1:3.03},10],
-['UT6','Grasas, aceites, cacao y chocolate',2,{RA1:2.88},12],
-['UT7','Frutas, verduras, otros productos vegetales y hongos',2,{RA1:2.48},10],
-['UT8','Ingredientes tecnológicos',2,{RA1:3.05},8],
-['UT9','Elaboración de pan',2,{RA3:7.77},10],
-['UT10','Productos de bollería, pastelería, repostería y galletas',3,{RA2:11.91},12],
-['UT11','Productos de confitería, turrones y mazapanes',3,{RA2:6.19},10],
-['UT12','Productos de chocolate y heladería',3,{RA2:1.90,RA3:3.33},12],
-['UT13','Procesos de conservación, análisis sensorial y muestreo',3,{RA5:20.02,RA1:1.66},10]
-]
-},
-
-'Innovación':{
-ra:[
-['RA1','Concepto de innovación',25,0],
-['RA2','Innovación como motor de crecimiento',25,0],
-['RA3','Propone ideas innovadoras',25,0],
-['RA4','Oportunidades de mejora en empresas',25,0]
-],
-ut:[
-['UT1','Concepto de innovación y su importancia',1,{RA1:25},8],
-['UT2','Innovación como motor de crecimiento y desarrollo sostenible',1,{RA2:25},8],
-['UT3','Pensamiento creativo y herramientas de innovación',1,{RA3:25},9],
-['UT4','Casos prácticos y oportunidades de innovación',2,{RA4:25},9]
-]
-},
-
-'Digitalización':{
-ra:[
-['RA1','Economía lineal y circular',20,0],
-['RA2','4ª Revolución Industrial',20,0],
-['RA3','Sistemas cloud',20,0],
-['RA4','Sistemas de producción digitalizados',20,0],
-['RA5','Plan de transformación 4.0',20,0]
-],
-ut:[
-['UT1','Economías lineal y circular',1,{RA1:20},6],
-['UT2','La 4ª Revolución Industrial',1,{RA2:20},5],
-['UT3','Cloud y sistemas conectados',2,{RA3:20},6],
-['UT4','Sistemas de producción digitalizados',2,{RA4:20},7],
-['UT5','Plan de transformación digital',3,{RA5:20},10]
-]
-},
-
-'Presentación y venta al público':{
-ra:[
-['RA1','Fijación de precios',20,0],
-['RA2','Exposición en vitrinas',20,2/11],
-['RA3','Cierre de la venta',20,1/4],
-['RA4','Atención al cliente',20,1/4],
-['RA5','Quejas y reclamaciones',20,0]
-],
-ut:[
-['UT1','Establecimiento de precios',1,{RA1:20},13],
-['UT2','Exposición en el punto de venta',1,{RA2:20},14],
-['UT3','Gestión operativa de la venta',2,{RA3:20},13],
-['UT4','Atención al cliente',2,{RA4:20},13],
-['UT5','Resolución de reclamaciones y quejas',3,{RA5:20},13]
-]
+alarmaCSS.textContent = `
+#globalPendingAlarm{
+  max-width:640px;
+  margin:10px auto;
+  padding:0 14px;
 }
 
-};
-
-var PLANS={
-
-'Materias primas':{
-start:'2026-09-14',
-end:'2027-06-17',
-target:136,
-ordinary:138,
-adjust:0,
-margin:2,
-schedule:{1:1,2:2,3:1},
-note:'136 sesiones curriculares. El horario real ofrece 138 periodos; 2 quedan como margen.',
-months:{
-'2026-09':[12,'UT1 + inicio UT2','RA4, RA3 y RA1','UT1 finalizada; UT2 iniciada.'],
-'2026-10':[14,'UT2 + UT3','RA1 y RA3','UT2 finalizada; UT3 en desarrollo.'],
-'2026-11':[16,'UT3 + UT4','RA1 y RA3','UT3 y UT4 finalizadas.'],
-'2026-12':[11,'UT5 + inicio UT6','RA1','UT5 finalizada; UT6 iniciada.'],
-'2027-01':[12,'UT6 + inicio UT7','RA1','UT6 finalizada; UT7 iniciada.'],
-'2027-02':[16,'UT7 + UT8','RA1','UT7 finalizada; UT8 en desarrollo.'],
-'2027-03':[13,'fin UT8 + UT9 + inicio UT10','RA1, RA3 y RA2','UT8 y UT9 finalizadas; UT10 iniciada.'],
-'2027-04':[16,'UT10 + UT11','RA2','UT10 finalizada; UT11 en desarrollo.'],
-'2027-05':[17,'fin UT11 + UT12 + inicio UT13','RA2, RA3, RA5 y RA1','UT11 y UT12 finalizadas; UT13 iniciada.'],
-'2027-06':[11,'UT13 + cierre','RA5 y RA1','UT13 finalizada; cierre.',9]
-}
-},
-
-'Presentación y venta al público':{
-start:'2026-09-14',
-end:'2027-06-17',
-target:66,
-ordinary:68,
-adjust:0,
-margin:2,
-schedule:{1:1,3:1},
-note:'66 sesiones curriculares y 2 periodos de margen. Solo PVPP tiene FFE.',
-months:{
-'2026-09':[6,'UT1','RA1','UT1/RA1 en desarrollo.'],
-'2026-10':[6,'UT1','RA1','UT1/RA1 prácticamente completado.'],
-'2026-11':[8,'fin UT1 + UT2','RA1 y RA2','RA1 completado; UT2 en desarrollo.'],
-'2026-12':[5,'UT2','RA2','UT2/RA2 en desarrollo.'],
-'2027-01':[6,'fin UT2 + UT3','RA2 y RA3','RA2 completado; UT3 iniciado.'],
-'2027-02':[8,'UT3','RA3','UT3 prácticamente completado.'],
-'2027-03':[7,'fin UT3 + UT4','RA3 y RA4','RA3 completado; UT4 en desarrollo.'],
-'2027-04':[8,'fin UT4 + inicio UT5','RA4 y RA5','RA4 completado; UT5 iniciado.'],
-'2027-05':[9,'UT5','RA5','UT5 avanzado.'],
-'2027-06':[5,'fin UT5 + cierre','RA5','UT5 completado; 2 periodos de margen.',3]
-}
-},
-
-'Digitalización':{
-start:'2026-09-14',
-end:'2027-06-17',
-target:34,
-ordinary:32,
-adjust:2,
-margin:0,
-schedule:{1:1},
-note:'Se requieren 34 sesiones y hay 32 lunes ordinarios; hacen falta 2 periodos de ajuste.',
-months:{
-'2026-09':[3,'UT1','RA1','UT1 en desarrollo.'],
-'2026-10':[2,'UT1','RA1','UT1 en desarrollo.'],
-'2026-11':[4,'fin UT1 + UT2','RA1 y RA2','UT1 completado; UT2 en desarrollo.'],
-'2026-12':[2,'UT2','RA2','UT2 completada.'],
-'2027-01':[3,'UT3','RA3','UT3 en desarrollo.'],
-'2027-02':[4,'fin UT3 + inicio UT4','RA3 y RA4','UT3 completado; UT4 iniciado.'],
-'2027-03':[3,'UT4','RA4','UT4 en desarrollo.'],
-'2027-04':[4,'fin UT4 + inicio UT5','RA4 y RA5','UT4 completado; UT5 iniciado.'],
-'2027-05':[5,'UT5','RA5','UT5 avanzado.'],
-'2027-06':[2,'UT5','RA5','Faltan 2 ajustes.']
-}
-},
-
-'Innovación':{
-start:'2026-09-14',
-end:'2027-02-08',
-target:34,
-ordinary:34,
-adjust:0,
-margin:0,
-schedule:{1:1,3:1},
-note:'Módulo cuatrimestral de 34 sesiones.',
-months:{
-'2026-09':[6,'UT1','RA1','UT1 en desarrollo.'],
-'2026-10':[6,'fin UT1 + inicio UT2','RA1 y RA2','RA1 completado; RA2 iniciado.'],
-'2026-11':[8,'fin UT2 + inicio UT3','RA2 y RA3','RA2 completado; RA3 iniciado.'],
-'2026-12':[5,'UT3','RA3','UT3 completada.'],
-'2027-01':[6,'UT4','RA4','UT4 avanzado.'],
-'2027-02':[3,'fin UT4','RA4','UT4 completado.']
-}
+.pendingAlarmBox{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:#fff1f0;
+  border:1px solid #efb9b5;
+  border-left:5px solid #d5453f;
+  border-radius:12px;
+  padding:11px 12px;
+  box-shadow:0 4px 14px rgba(30,42,56,.10);
 }
 
-};
-
-function clone(o){return JSON.parse(JSON.stringify(o))}
-
-var S={
-g:clone(DEFAULT_GROUPS),
-subj:['Materias primas','Innovación','Digitalización','Presentación y venta al público','Proyecto intermodular'],
-days:[1,2,3],
-ent:[],
-att:{},
-cal:CAL.slice(),
-mx:clone(MX),
-nt:{},
-rec:{},
-pe:50,
-gate:true,
-empN:10,
-tt:clone(DEFAULT_TIMETABLE),
-tasks:[],
-evals:[],
-notifyLog:{}
-};
-
-var V='cal';
-var cur=new Date(2026,8,1);
-var day=new Date();
-var ut=0;
-var pane='meter';
-var segDate=null;
-var planPane='week';
-
-var sel={
-g:0,m:0,t:0,ag:0,sg:0,ng:0,nm:0,mx:0,du:0,sm:0
-};
-
-function $(i){return document.getElementById(i)}
-function esc(s){
-return String(s==null?'':s).replace(/[&<>"]/g,function(c){
-return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]
-})
-}
-function p2(n){return n<10?'0'+n:''+n}
-function iso(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
-function pd(s){var a=s.split('-');return new Date(+a[0],+a[1]-1,+a[2])}
-function lon(s){var d=pd(s);return DWN[d.getDay()]+', '+d.getDate()+' de '+MO[d.getMonth()]}
-function sh(s){var d=pd(s);return d.getDate()+' '+MO[d.getMonth()].slice(0,3)}
-function ymName(ym){var a=ym.split('-');return MO[+a[1]-1]+' '+a[0]}
-
-var TD=iso(new Date());
-
-function save(){
-try{localStorage.setItem(K,JSON.stringify(S))}
-catch(e){tos('No se ha podido guardar')}
+.pendingAlarmIcon{
+  font-size:24px;
+  line-height:1;
+  animation:campana 1.1s ease-in-out;
 }
 
-function normalizeState(){
-if(!S.g||!S.g.length)S.g=clone(DEFAULT_GROUPS);
-if(!S.subj)S.subj=['Materias primas','Innovación','Digitalización','Presentación y venta al público','Proyecto intermodular'];
-if(!S.days)S.days=[1,2,3];
-if(!S.ent)S.ent=[];
-if(!S.att)S.att={};
-if(!S.cal||!S.cal.length)S.cal=CAL.slice();
-if(!S.mx)S.mx={};
-
-for(var q in MX)S.mx[q]=clone(MX[q]);
-
-if(!S.nt)S.nt={};
-if(!S.rec)S.rec={};
-if(S.pe===undefined)S.pe=50;
-if(S.gate===undefined)S.gate=true;
-if(S.empN===undefined)S.empN=10;
-if(!S.tt)S.tt=clone(DEFAULT_TIMETABLE);
-if(!S.tasks)S.tasks=[];
-if(!S.evals)S.evals=[];
-if(!S.notifyLog)S.notifyLog={};
+.pendingAlarmText{
+  flex:1;
+  min-width:0;
+  font-size:13px;
+  color:#5c6b7c;
 }
 
-function load(){
-try{
-var v=localStorage.getItem(K);
-var mig=false;
-
-if(!v){
-v=localStorage.getItem(OLDK);
-mig=!!v;
+.pendingAlarmText strong{
+  display:block;
+  color:#1e2a38;
+  font-size:14px;
+  margin-bottom:2px;
 }
 
-if(v){
-var d=JSON.parse(v);
-for(var k in d)S[k]=d[k];
+.pendingAlarmButton{
+  border:0;
+  background:#d5453f;
+  color:white;
+  border-radius:9px;
+  padding:8px 10px;
+  font-weight:650;
+  font-size:12px;
+  cursor:pointer;
+  white-space:nowrap;
 }
 
-normalizeState();
-if(mig)save();
-
-}catch(e){
-normalizeState();
-}
-}
-
-function tos(m){
-var t=$('ts');
-t.textContent=m;
-t.className='ts on';
-setTimeout(function(){t.className='ts'},2500);
-}
-
-function num(v){
-if(v===''||v===null||v===undefined)return null;
-var x=parseFloat(String(v).replace(',','.'));
-return isNaN(x)?null:x;
+.pendingAlarmBadge{
+  display:inline-grid;
+  place-items:center;
+  min-width:18px;
+  height:18px;
+  padding:0 5px;
+  margin-left:3px;
+  border-radius:10px;
+  background:#d5453f;
+  color:white;
+  font-size:10px;
+  font-weight:800;
 }
 
-function inf(ds){
+@keyframes campana{
+  0%,100%{transform:rotate(0deg)}
+  20%{transform:rotate(14deg)}
+  40%{transform:rotate(-14deg)}
+  60%{transform:rotate(10deg)}
+  80%{transform:rotate(-8deg)}
+}
+`;
 
-var w=pd(ds).getDay();
-var ms=[];
+document.head.appendChild(alarmaCSS);
 
-for(var i=0;i<S.cal.length;i++){
-var r=S.cal[i];
-if(ds>=r[1]&&ds<=r[2])ms.push(r);
+
+/* Crear zona de alarma debajo de la cabecera */
+
+var alarmaHost = document.createElement('div');
+
+alarmaHost.id = 'globalPendingAlarm';
+alarmaHost.style.display = 'none';
+
+var main = document.querySelector('main');
+
+if(main){
+  main.parentNode.insertBefore(alarmaHost,main);
 }
 
-function h(t){
-for(var i=0;i<ms.length;i++)
-if(ms[i][0]===t)return 1;
-return 0;
+
+/* ---------------------------------------------------------
+   Obtener asuntos pendientes
+   --------------------------------------------------------- */
+
+function fechaHoy(){
+  var d = new Date();
+
+  return d.getFullYear() + '-' +
+         String(d.getMonth()+1).padStart(2,'0') + '-' +
+         String(d.getDate()).padStart(2,'0');
 }
 
-var we=(w===0||w===6);
 
-var le=!we &&
-!h('festivo') &&
-!h('libre') &&
-ds>='2026-09-01' &&
-ds<='2027-06-30';
+function sumarDias(fecha,n){
 
-var tp=h('festivo')?'festivo':
-(h('libre')?
-(h('inicio')?'inicio':(h('fin')?'fin':'libre')):
-(h('inicio')?'inicio':(h('fin')?'fin':null)));
+  var p = fecha.split('-');
 
-return{
-ms:ms,
-tp:tp,
-we:we,
-le:le,
-cl:le&&S.days.indexOf(w)>=0
-};
+  var d = new Date(
+    Number(p[0]),
+    Number(p[1])-1,
+    Number(p[2])
+  );
+
+  d.setDate(d.getDate()+n);
+
+  return d.getFullYear() + '-' +
+         String(d.getMonth()+1).padStart(2,'0') + '-' +
+         String(d.getDate()).padStart(2,'0');
 }
 
-function schoolOff(ds){
-return !inf(ds).le;
+
+function asuntosPendientes(){
+
+  var hoy = fechaHoy();
+
+  var dentro7 = sumarDias(hoy,7);
+
+  var lista = [];
+
+  /*
+    TAREAS
+    Se consideran urgentes:
+    - las vencidas
+    - las de hoy
+    - las de los próximos 7 días
+  */
+
+  if(window.S && Array.isArray(S.tasks)){
+
+    S.tasks.forEach(function(t){
+
+      if(t.done) return;
+
+      if(t.date <= dentro7){
+
+        lista.push({
+          tipo:'tarea',
+          fecha:t.date,
+          titulo:t.title || 'Tarea pendiente',
+          asignatura:t.subject || 'General',
+          vencida:t.date < hoy
+        });
+
+      }
+
+    });
+
+  }
+
+
+  /*
+    EVALUACIONES
+    Aviso desde 3 días antes del examen
+  */
+
+  if(window.S && Array.isArray(S.evals)){
+
+    S.evals.forEach(function(e){
+
+      if(e.done) return;
+
+      var fechaAviso = sumarDias(e.date,-3);
+
+      if(fechaAviso <= hoy && e.date >= hoy){
+
+        lista.push({
+          tipo:'examen',
+          fecha:e.date,
+          titulo:'Poner examen de ' + e.subject,
+          asignatura:e.subject,
+          vencida:false
+        });
+
+      }
+
+    });
+
+  }
+
+
+  lista.sort(function(a,b){
+
+    if(a.fecha < b.fecha) return -1;
+
+    if(a.fecha > b.fecha) return 1;
+
+    return 0;
+
+  });
+
+  return lista;
 }
 
-function cdb(a,b){
-var n=0;
-var d=pd(a);
-var e=pd(b);
 
-while(d<=e){
-if(inf(iso(d)).cl)n++;
-d.setDate(d.getDate()+1);
+/* ---------------------------------------------------------
+   Sonido
+   --------------------------------------------------------- */
+
+var contextoAudio = null;
+
+
+function sonarAlarma(){
+
+  try{
+
+    var AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+    if(!AudioContext) return;
+
+
+    if(!contextoAudio){
+
+      contextoAudio = new AudioContext();
+
+    }
+
+
+    if(contextoAudio.state === 'suspended'){
+
+      contextoAudio.resume();
+
+    }
+
+
+    var ahora = contextoAudio.currentTime;
+
+
+    /*
+      Dos tonos cortos tipo campana
+    */
+
+    [0,0.20].forEach(function(retraso,i){
+
+      var osc =
+        contextoAudio.createOscillator();
+
+      var gain =
+        contextoAudio.createGain();
+
+
+      osc.type = 'sine';
+
+      osc.frequency.setValueAtTime(
+        i === 0 ? 740 : 880,
+        ahora + retraso
+      );
+
+
+      gain.gain.setValueAtTime(
+        0.0001,
+        ahora + retraso
+      );
+
+
+      gain.gain.exponentialRampToValueAtTime(
+        0.18,
+        ahora + retraso + 0.02
+      );
+
+
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        ahora + retraso + 0.17
+      );
+
+
+      osc.connect(gain);
+
+      gain.connect(
+        contextoAudio.destination
+      );
+
+
+      osc.start(
+        ahora + retraso
+      );
+
+
+      osc.stop(
+        ahora + retraso + 0.19
+      );
+
+    });
+
+  }
+  catch(error){
+
+    console.log(
+      'No se pudo reproducir la alarma',
+      error
+    );
+
+  }
+
 }
 
-return n;
+
+/* No repetir continuamente el sonido */
+
+function sonarSiProcede(lista){
+
+  if(!lista.length) return;
+
+  try{
+
+    var ultima =
+      Number(
+        sessionStorage.getItem(
+          'ultimaAlarmaCuaderno'
+        ) || 0
+      );
+
+
+    var ahora = Date.now();
+
+
+    /*
+      Puede volver a sonar después de 30 minutos
+      si abandonas y vuelves a la aplicación.
+    */
+
+    if(
+      !ultima ||
+      ahora-ultima > 30*60*1000
+    ){
+
+      sonarAlarma();
+
+      sessionStorage.setItem(
+        'ultimaAlarmaCuaderno',
+        String(ahora)
+      );
+
+    }
+
+  }
+  catch(error){
+
+    sonarAlarma();
+
+  }
+
 }
 
-function ak(d,gi){return d+'|'+gi}
 
-function chips(el,arr,key,cb){
+/* ---------------------------------------------------------
+   Número rojo en la pestaña PLAN
+   --------------------------------------------------------- */
 
-el.innerHTML=arr.map(function(n,i){
-return '<button data-i="'+i+'" class="'+(sel[key]===i?'on':'')+'">'+esc(n)+'</button>';
-}).join('') || '<span class="hi">Añádelos en Ajustes.</span>';
+function actualizarBadge(numero){
 
-var bs=el.querySelectorAll('button');
+  var botonPlan =
+    document.querySelector(
+      'nav button[data-v="plan"]'
+    );
 
-for(var i=0;i<bs.length;i++){
-bs[i].onclick=function(){
-sel[key]=+this.getAttribute('data-i');
-cb();
-};
-}
-}
+  if(!botonPlan) return;
 
-function gn(){
-return S.g.map(function(g){return g.n});
-}
 
-function mxOf(mi){
-return S.mx[S.subj[mi]]||null;
-}
+  var anterior =
+    botonPlan.querySelector(
+      '.pendingAlarmBadge'
+    );
 
-function planOf(mi){
-return PLANS[S.subj[mi]]||null;
-}
 
-function planByName(n){
-return PLANS[n]||null;
-}
+  if(anterior){
 
-function rcal(){
+    anterior.remove();
 
-$('dw').innerHTML=WD.map(function(d){
-return '<div class="'+(S.days.indexOf(d[0])>=0?'on':'')+'">'+d[1]+'</div>';
-}).join('');
+  }
 
-var y=cur.getFullYear();
-var m=cur.getMonth();
 
-$('mt').textContent=MO[m]+' '+y;
+  if(numero > 0){
 
-$('pm').disabled=(y===2026&&m<=7);
-$('nm').disabled=(y===2027&&m>=7);
+    var badge =
+      document.createElement('span');
 
-var ld=(new Date(y,m,1).getDay()+6)%7;
-var nd=new Date(y,m+1,0).getDate();
-var h='';
 
-for(var i=0;i<ld;i++){
-h+='<div class="cl em"></div>';
+    badge.className =
+      'pendingAlarmBadge';
+
+
+    badge.textContent =
+      numero > 9 ? '9+' : numero;
+
+
+    botonPlan.appendChild(
+      badge
+    );
+
+  }
+
 }
 
-for(var n=1;n<=nd;n++){
 
-var ds=y+'-'+p2(m+1)+'-'+p2(n);
-var f=inf(ds);
+/* ---------------------------------------------------------
+   Franja visual
+   --------------------------------------------------------- */
 
-var c='cl'+
-(f.we?' we':'')+
-(f.tp?' m-'+f.tp:'')+
-(f.cl&&!f.tp?' cd':'')+
-(!f.cl&&!f.tp&&!f.we?' of':'')+
-(ds===TD?' td':'');
+function actualizarAlarma(reproducirSonido){
 
-var dd='';
-var ts2={};
+  var lista =
+    asuntosPendientes();
 
-for(var j=0;j<S.ent.length;j++){
-if(S.ent[j].d===ds)ts2[S.ent[j].t]=1;
+
+  actualizarBadge(
+    lista.length
+  );
+
+
+  if(!lista.length){
+
+    alarmaHost.style.display =
+      'none';
+
+    alarmaHost.innerHTML =
+      '';
+
+    return;
+
+  }
+
+
+  var vencidas =
+    lista.filter(function(x){
+
+      return x.vencida;
+
+    }).length;
+
+
+  var examenes =
+    lista.filter(function(x){
+
+      return x.tipo === 'examen';
+
+    }).length;
+
+
+  var proximas =
+    lista.length -
+    vencidas -
+    examenes;
+
+
+  var detalles = [];
+
+
+  if(vencidas){
+
+    detalles.push(
+      vencidas +
+      (vencidas === 1 ?
+      ' tarea vencida' :
+      ' tareas vencidas')
+    );
+
+  }
+
+
+  if(examenes){
+
+    detalles.push(
+      examenes +
+      (examenes === 1 ?
+      ' examen por preparar' :
+      ' exámenes por preparar')
+    );
+
+  }
+
+
+  if(proximas){
+
+    detalles.push(
+      proximas +
+      (proximas === 1 ?
+      ' tarea próxima' :
+      ' tareas próximas')
+    );
+
+  }
+
+
+  alarmaHost.style.display =
+    'block';
+
+
+  alarmaHost.innerHTML = `
+
+    <div class="pendingAlarmBox">
+
+      <div class="pendingAlarmIcon">
+        🔔
+      </div>
+
+      <div class="pendingAlarmText">
+
+        <strong>
+          Tienes ${lista.length}
+          ${lista.length===1 ?
+            'asunto pendiente' :
+            'asuntos pendientes'}.
+          Revisa la aplicación.
+        </strong>
+
+        ${detalles.join(' · ')}
+
+      </div>
+
+      <button
+        id="abrirPendientes"
+        class="pendingAlarmButton">
+
+        Ver pendientes
+
+      </button>
+
+    </div>
+
+  `;
+
+
+  var boton =
+    document.getElementById(
+      'abrirPendientes'
+    );
+
+
+  if(boton){
+
+    boton.onclick =
+      function(){
+
+        /*
+          Abrir directamente PLAN
+        */
+
+        if(
+          typeof setv ===
+          'function'
+        ){
+
+          planPane = 'week';
+
+          setv('plan');
+
+        }
+
+      };
+
+  }
+
+
+  if(reproducirSonido){
+
+    sonarSiProcede(
+      lista
+    );
+
+  }
+
 }
 
-for(var t in ts2){
-if(TY[t])dd+='<i style="background:'+TY[t][2]+'"></i>';
+
+/* ---------------------------------------------------------
+   Notificación del sistema
+   --------------------------------------------------------- */
+
+function notificacionGeneral(){
+
+  var lista =
+    asuntosPendientes();
+
+
+  if(!lista.length) return;
+
+
+  if(
+    !('Notification' in window)
+  ) return;
+
+
+  if(
+    Notification.permission !==
+    'granted'
+  ) return;
+
+
+  var hoy =
+    fechaHoy();
+
+
+  var clave =
+    'alarmaGeneral:' + hoy;
+
+
+  if(
+    window.S &&
+    S.notifyLog &&
+    S.notifyLog[clave]
+  ){
+
+    return;
+
+  }
+
+
+  try{
+
+    new Notification(
+      'Cuaderno de aula',
+      {
+        body:
+          'Tienes ' +
+          lista.length +
+          ' asunto' +
+          (lista.length===1 ? '' : 's') +
+          ' pendiente' +
+          (lista.length===1 ? '' : 's') +
+          '. Revisa la aplicación.',
+
+        tag:
+          'cuaderno-pendientes-' +
+          hoy
+      }
+    );
+
+
+    if(
+      window.S &&
+      S.notifyLog
+    ){
+
+      S.notifyLog[clave] =
+        hoy;
+
+
+      if(
+        typeof save ===
+        'function'
+      ){
+
+        save();
+
+      }
+
+    }
+
+  }
+  catch(error){}
+
 }
 
-for(var gi=0;gi<S.g.length;gi++){
-if(S.att[ak(ds,gi)]){
-dd+='<i style="background:var(--ok)"></i>';
-break;
-}
-}
 
-h+='<button class="'+c+'" data-d="'+ds+'">'+
-'<span class="nu">'+n+'</span>'+
-'<span class="dt">'+dd+'</span>'+
-'</button>';
-}
+/* ---------------------------------------------------------
+   Ejecutar alarma
+   --------------------------------------------------------- */
 
-$('gd').innerHTML=h;
+function comprobarPendientes(){
 
-var bs=$('gd').querySelectorAll('button');
+  actualizarAlarma(true);
 
-for(var i=0;i<bs.length;i++){
-bs[i].onclick=function(){
-day=pd(this.getAttribute('data-d'));
-setv('dia');
-};
+  notificacionGeneral();
+
 }
 
-var mes=cdb(
-y+'-'+p2(m+1)+'-01',
-y+'-'+p2(m+1)+'-'+p2(nd)
+
+/*
+  Al abrir la aplicación
+*/
+
+setTimeout(
+  comprobarPendientes,
+  600
 );
 
-var res=TD<'2027-06-30'?
-cdb(
-TD>'2026-09-01'?TD:'2026-09-01',
-'2027-06-30'
-):0;
 
-var dl={};
-
-for(var i=0;i<S.ent.length;i++){
-dl[S.ent[i].d]=1;
-}
-
-$('stt').innerHTML=
-'<div><b>'+mes+'</b><small>clases<br>este mes</small></div>'+
-'<div><b>'+res+'</b><small>clases hasta<br>fin de curso</small></div>'+
-'<div><b>'+Object.keys(dl).length+'</b><small>días con<br>anotaciones</small></div>';
-
-rHomeAlerts();
-}
-
-function defaultSessions(mi,ds){
-
-var p=planOf(mi);
-
-if(!p)return 1;
-
-var d=pd(ds);
-var v=p.schedule[d.getDay()]||0;
-
-return v||1;
-}
-
-function rdaymeta(reset){
-
-var mx=mxOf(sel.m);
-var isContent=sel.t===0;
-
-if(mx&&isContent){
-
-$('utbox').className='';
-
-if(sel.du>=mx.ut.length)sel.du=0;
-
-chips(
-$('cut'),
-mx.ut.map(function(u){return u[0]+' · '+u[1]}),
-'du',
-function(){rdaymeta(false)}
-);
-
-var u=mx.ut[sel.du];
-
-$('uth').textContent=u?
-u[4]+' sesiones curriculares · '+u[0]:
-'';
-
-}else{
-
-$('utbox').className='hide';
-$('cut').innerHTML='';
-$('uth').textContent='';
-
-}
-
-var p=planOf(sel.m);
-
-if(p&&isContent){
-
-$('sesbox').className='';
-
-if(reset){
-$('ses').value=defaultSessions(sel.m,iso(day));
-}
-
-}else{
-$('sesbox').className='hide';
-}
-}
-
-function rdia(){
-
-var ds=iso(day);
-var f=inf(ds);
-
-$('dp').value=ds;
-
-var t='';
-
-if(f.cl){
-t+='<span class="k">Tienes clase</span>';
-}else if(f.le){
-t+='<span>Lectivo, sin clase tuya</span>';
-}
-
-for(var i=0;i<f.ms.length;i++){
-t+='<span style="background:'+TC[f.ms[i][0]]+';border-color:'+TC[f.ms[i][0]]+';color:#fff">'+
-esc(f.ms[i][3])+
-'</span>';
-}
-
-if(!f.le&&!f.ms.length){
-t+='<span>Fin de semana</span>';
-}
-
-$('dtg').innerHTML=t;
-
-chips($('ag'),gn(),'ag',ratt);
-chips($('cg'),gn(),'g',function(){});
-chips($('cm'),S.subj,'m',function(){
-sel.du=0;
-rdaymeta(true);
-});
-chips($('ct'),TY.map(function(x){return x[1]}),'t',function(){
-rdaymeta(true);
-});
-
-rdaymeta(true);
-ratt();
-rent();
-}
-
-function ratt(){
-
-var g=S.g[sel.ag];
-
-if(!g){
-$('alst').innerHTML='<p class="ep">Añade un grupo en Ajustes.</p>';
-$('asum').textContent='';
-return;
-}
-
-var k=ak(iso(day),sel.ag);
-var r=S.att[k]||{};
-
-$('alst').innerHTML=g.st.map(function(n,i){
-
-return '<div class="sr">'+
-'<span class="n">'+esc(n)+'</span>'+
-'<span class="mk">'+
-['P','R','F','J'].map(function(m){
-return '<button data-m="'+m+'" data-i="'+i+'" class="'+(r[i]===m?m:'')+'">'+m+'</button>';
-}).join('')+
-'</span>'+
-'</div>';
-
-}).join('') || '<p class="ep">Este grupo no tiene alumnos.</p>';
-
-var bs=$('alst').querySelectorAll('.mk button');
-
-for(var i=0;i<bs.length;i++){
-
-bs[i].onclick=function(){
-
-var kk=ak(iso(day),sel.ag);
-var rr=S.att[kk]||(S.att[kk]={});
-var ix=this.getAttribute('data-i');
-var mm=this.getAttribute('data-m');
-
-if(rr[ix]===mm){
-delete rr[ix];
-}else{
-rr[ix]=mm;
-}
-
-save();
-ratt();
-};
-}
-
-var c={P:0,R:0,F:0,J:0};
-var n=0;
-
-for(var x in r){
-
-if(c[r[x]]!==undefined){
-c[r[x]]++;
-n++;
-}
-}
-
-$('asum').textContent=
-c.P+' presentes · '+
-c.R+' retrasos · '+
-(c.F+c.J)+' faltas'+
-(g.st.length-n?' · '+(g.st.length-n)+' sin marcar':'');
-}
-
-function entryMeta(e){
-
-if(e.t!==0)return '';
-
-var m=S.subj[e.m]||'';
-var mx=S.mx[m];
-var a=[];
-
-if(mx&&e.u!==undefined&&mx.ut[e.u]){
-a.push(mx.ut[e.u][0]);
-}
-
-if(e.ses){
-a.push(e.ses+' '+(e.ses===1?'sesión':'sesiones'));
-}
-
-return a.length?' · '+a.join(' · '):'';
-}
-
-function ehtml(e){
-
-var g=S.g[e.g]?S.g[e.g].n:'Sin grupo';
-var ty=TY[e.t]||TY[0];
-
-return '<div class="en">'+
-'<i class="bl" style="background:'+ty[2]+'"></i>'+
-'<div class="h">'+esc(g)+' · '+esc(S.subj[e.m]||'')+' · '+ty[1]+entryMeta(e)+'</div>'+
-'<div class="t">'+esc(e.x)+'</div>'+
-'<button class="x" data-id="'+e.id+'">&times;</button>'+
-'</div>';
-}
-
-function bindx(el){
-
-var bs=el.querySelectorAll('.x[data-id]');
-
-for(var i=0;i<bs.length;i++){
-
-bs[i].onclick=function(){
-
-var id=this.getAttribute('data-id');
-
-S.ent=S.ent.filter(function(e){
-return e.id!=id;
-});
-
-save();
-rall();
-tos('Anotación borrada');
-
-};
-}
-}
-
-function rent(){
-
-var ds=iso(day);
-
-var l=S.ent.filter(function(e){
-return e.d===ds;
-});
-
-$('dent').innerHTML=l.length?
-l.map(ehtml).join(''):
-'<p class="ep">Nada anotado de este día todavía.</p>';
-
-bindx($('dent'));
-}
-
-function stats(gi,i){
-
-var p=0,r=0,f=0,j=0;
-
-for(var k in S.att){
-
-if(k.split('|')[1]!=gi)continue;
-
-var v=S.att[k][i];
-
-if(v==='P')p++;
-else if(v==='R')r++;
-else if(v==='F')f++;
-else if(v==='J')j++;
-}
-
-var t=p+r+f+j;
-
-return{
-p:p,
-r:r,
-f:f,
-j:j,
-t:t,
-pc:t?Math.round((p+r)/t*100):null
-};
-}
-
-function ali(ds,gi){
-
-var r=S.att[ak(ds,gi)];
-var g=S.g[gi];
-
-if(!r||!g)return '';
-
-var f=[];
-var j=[];
-var re=[];
-
-g.st.forEach(function(n,i){
-
-var v=r[i];
-var a=n.split(',')[0];
-
-if(v==='F')f.push(a);
-else if(v==='J')j.push(a);
-else if(v==='R')re.push(a);
-
-});
-
-var b=[];
-
-if(f.length)b.push('faltan '+f.join(', '));
-if(j.length)b.push('justificadas '+j.join(', '));
-if(re.length)b.push('retrasos '+re.join(', '));
-
-return g.n+': '+(b.length?b.join(' · '):'asistencia completa');
-}
-
-function dates(){
-
-var d={};
-
-S.ent.forEach(function(e){
-d[e.d]=1;
-});
-
-for(var k in S.att){
-d[k.split('|')[0]]=1;
-}
-
-return Object.keys(d).sort();
-}
-
-function rdia2(){
-
-chips($('sg'),gn(),'sg',rdia2);
-
-var g=S.g[sel.sg];
-
-$('slst').innerHTML=
-g&&g.st.length?
-g.st.map(function(n,i){
-
-var s=stats(sel.sg,i);
-
-return '<div class="su">'+
-'<div class="n">'+esc(n)+
-'<small>'+
-(s.t?
-s.f+' faltas · '+s.j+' justificadas · '+s.r+' retrasos · '+s.t+' días':
-'sin registro')+
-'</small>'+
-'<div class="tk"><i style="width:'+(s.pc||0)+'%"></i></div>'+
-'</div>'+
-'<b>'+(s.pc===null?'—':s.pc+'%')+'</b>'+
-'</div>';
-
-}).join(''):
-'<p class="ep">Sin alumnos.</p>';
-
-var ks=dates().reverse();
-
-$('dlst').innerHTML=
-ks.length?
-ks.map(function(d){
-
-var a='';
-
-for(var gi=0;gi<S.g.length;gi++){
-
-var l=ali(d,gi);
-
-if(l){
-a+='<div class="al">'+esc(l)+'</div>';
-}
-}
-
-return '<div class="dh">'+lon(d)+'</div>'+
-a+
-S.ent.filter(function(e){
-return e.d===d;
-}).map(ehtml).join('');
-
-}).join(''):
-'<p class="ep">Aún no hay nada. Marca asistencia o dicta una nota.</p>';
-
-bindx($('dlst'));
-}
-
-/* HORARIO, PLANIFICACIÓN Y AVISOS */
-
-function addDays(ds,n){
-var d=pd(ds);
-d.setDate(d.getDate()+n);
-return iso(d);
-}
-
-function monday(ds){
-var d=pd(ds);
-var w=d.getDay();
-var x=(w===0?-6:1-w);
-d.setDate(d.getDate()+x);
-return iso(d);
-}
-
-function nextWeek(ds){
-var m=addDays(monday(ds),7);
-return{a:m,b:addDays(m,6)};
-}
-
-function notif(title,body,tag){
-
-if(!('Notification' in window)||
-Notification.permission!=='granted'){
-return false;
-}
-
-try{
-new Notification(title,{body:body,tag:tag});
-return true;
-}catch(e){
-return false;
-}
-}
-
-function permissionText(){
-
-if(!('Notification' in window)){
-return 'Avisos no disponibles';
-}
-
-if(Notification.permission==='granted'){
-return 'Avisos activados';
-}
-
-if(Notification.permission==='denied'){
-return 'Avisos bloqueados';
-}
-
-return 'Activar avisos';
-}
-
-function dueExamAlerts(ds){
-
-return S.evals.filter(function(e){
-
-return !e.done &&
-addDays(e.date,-3)<=ds &&
-e.date>=ds;
-
-}).sort(function(a,b){
-return a.date<b.date?-1:1;
-});
-}
-
-function wedTasks(ds){
-
-if(pd(ds).getDay()!==3)return[];
-
-var w=nextWeek(ds);
-
-return S.tasks.filter(function(t){
-
-return !t.done &&
-t.date>=w.a &&
-t.date<=w.b;
-
-}).sort(function(a,b){
-return a.date<b.date?-1:1;
-});
-}
-
-function alertHtml(ds){
-
-var h='';
-var ev=dueExamAlerts(ds);
-var wt=wedTasks(ds);
-
-if(ev.length){
-
-h+='<div class="alertbox">'+
-'<b>Evaluaciones próximas</b>'+
-ev.map(function(e){
-
-return 'Poner examen de <b>'+esc(e.subject)+'</b>'+
-' · evaluación '+sh(e.date)+
-(e.note?' · '+esc(e.note):'');
-
-}).join('<br>')+
-'</div>';
-}
-
-if(pd(ds).getDay()===3){
-
-h+='<div class="alertbox">'+
-'<b>Plan del miércoles · semana siguiente</b>'+
-(
-wt.length?
-wt.map(function(t){
-
-return sh(t.date)+
-' · '+esc(t.title)+
-(t.subject?' · '+esc(t.subject):'');
-
-}).join('<br>'):
-'No tienes tareas pendientes registradas para la semana siguiente.'
-)+
-'</div>';
-}
-
-return h;
-}
-
-function rHomeAlerts(){
-$('homeAlerts').innerHTML=alertHtml(TD);
-}
-
-function checkAlerts(){
-
-var ds=iso(new Date());
-
-var ev=dueExamAlerts(ds);
-
-ev.forEach(function(e){
-
-var k='exam:'+e.id;
-
-if(!S.notifyLog[k]){
-
-if(
-notif(
-'Cuaderno de aula',
-'Poner examen de '+e.subject+' · evaluación '+sh(e.date),
-'exam-'+e.id
-)
-){
-S.notifyLog[k]=ds;
-}
-}
-});
-
-if(pd(ds).getDay()===3){
-
-var wt=wedTasks(ds);
-var wk='wed:'+monday(ds);
-
-if(!S.notifyLog[wk]){
-
-var body=wt.length?
-wt.slice(0,4).map(function(t){
-return t.title;
-}).join(' · '):
-'No tienes tareas registradas para la semana siguiente.';
-
-if(
-notif(
-'Planificación de la semana siguiente',
-body,
-'week-'+monday(ds)
-)
-){
-S.notifyLog[wk]=ds;
-}
-}
-}
-
-save();
-}
-
-function rhor(){
-
-var days=[1,2,3,4,5];
-
-var dn={
-1:'Lunes',
-2:'Martes',
-3:'Miércoles',
-4:'Jueves',
-5:'Viernes'
-};
-
-var h='';
-
-days.forEach(function(d){
-
-var a=S.tt.filter(function(x){
-return +x.d===d;
-}).sort(function(x,y){
-return x.a<y.a?-1:1;
-});
-
-if(!a.length)return;
-
-h+='<div class="ttday">'+dn[d]+'</div>';
-
-h+=a.map(function(x){
-
-return '<div class="ttrow">'+
-'<div class="tttime">'+esc(x.a)+'–'+esc(x.b)+'</div>'+
-'<div class="ttsub">'+
-esc(x.s)+
-'<small>'+esc(x.g||'')+'</small>'+
-'<button class="b d" style="margin-top:6px;padding:5px 8px" data-ttdel="'+x.id+'">Quitar</button>'+
-'</div>'+
-'</div>';
-
-}).join('');
-});
-
-$('horout').innerHTML=
-h||'<p class="ep">No hay clases en el horario.</p>';
-
-$('ttsubj').innerHTML=
-S.subj.map(function(x){
-return '<option>'+esc(x)+'</option>';
-}).join('');
-
-$('ttgroup').innerHTML=
-S.g.map(function(x){
-return '<option>'+esc(x.n)+'</option>';
-}).join('');
-
-var bs=$('horout').querySelectorAll('[data-ttdel]');
-
-for(var i=0;i<bs.length;i++){
-
-bs[i].onclick=function(){
-
-var id=this.getAttribute('data-ttdel');
-
-S.tt=S.tt.filter(function(x){
-return String(x.id)!==String(id);
-});
-
-save();
-rhor();
-};
-}
-}
-
-function taskListHtml(arr){
-
-if(!arr.length){
-return '<p class="ep">No hay tareas pendientes.</p>';
-}
-
-return arr.map(function(t){
-
-return '<div class="taskrow '+(t.done?'taskdone':'')+'">'+
-'<div class="tasktop">'+
-'<div class="n">'+
-'<b>'+esc(t.title)+'</b>'+
-'<small>'+
-sh(t.date)+
-(t.subject?' · '+esc(t.subject):'')+
-(t.note?' · '+esc(t.note):'')+
-'</small>'+
-'</div>'+
-'<button class="b" data-taskdone="'+t.id+'">'+
-(t.done?'Reabrir':'Hecho')+
-'</button>'+
-'<button class="b d" data-taskdel="'+t.id+'">×</button>'+
-'</div>'+
-'</div>';
-
-}).join('');
-}
-
-function bindTaskButtons(root){
-
-var a=root.querySelectorAll('[data-taskdone]');
-
-for(var i=0;i<a.length;i++){
-
-a[i].onclick=function(){
-
-var id=this.getAttribute('data-taskdone');
-
-S.tasks.forEach(function(t){
-
-if(String(t.id)===String(id)){
-t.done=!t.done;
-}
-
-});
-
-save();
-rplan();
-checkAlerts();
-};
-}
-
-var b=root.querySelectorAll('[data-taskdel]');
-
-for(var j=0;j<b.length;j++){
-
-b[j].onclick=function(){
-
-var id=this.getAttribute('data-taskdel');
-
-S.tasks=S.tasks.filter(function(t){
-return String(t.id)!==String(id);
-});
-
-save();
-rplan();
-};
-}
-}
-
-function rplan(){
-
-$('notifbtn').textContent=permissionText();
-
-$('planalerts').innerHTML=
-alertHtml(iso(new Date()));
-
-var pb=$('planpane').querySelectorAll('button');
-
-for(var i=0;i<pb.length;i++){
-
-pb[i].className=
-pb[i].getAttribute('data-pp')===planPane?
-'on':
-'';
-
-pb[i].onclick=function(){
-
-planPane=this.getAttribute('data-pp');
-
-rplan();
-};
-}
-
-$('pp-week').className=
-planPane==='week'?'':'hide';
-
-$('pp-eval').className=
-planPane==='eval'?'':'hide';
-
-$('tasksubj').innerHTML=
-'<option value="">General</option>'+
-S.subj.map(function(x){
-return '<option>'+esc(x)+'</option>';
-}).join('');
-
-$('evalsubj').innerHTML=
-S.subj.map(function(x){
-return '<option>'+esc(x)+'</option>';
-}).join('');
-
-$('evalgroup').innerHTML=
-'<option value="">Todos / sin grupo</option>'+
-S.g.map(function(x){
-return '<option>'+esc(x.n)+'</option>';
-}).join('');
-
-var nw=nextWeek(iso(new Date()));
-
-if(!$('taskdate').value){
-$('taskdate').value=nw.a;
-}
-
-var nx=S.tasks.filter(function(t){
-
-return !t.done &&
-t.date>=nw.a &&
-t.date<=nw.b;
-
-}).sort(function(a,b){
-return a.date<b.date?-1:1;
-});
-
-$('nextweek').innerHTML=
-'<p class="hi" style="margin-top:0">'+
-sh(nw.a)+' – '+sh(nw.b)+
-'</p>'+
-taskListHtml(nx);
-
-bindTaskButtons($('nextweek'));
-
-var all=S.tasks.filter(function(t){
-return !t.done;
-}).sort(function(a,b){
-return a.date<b.date?-1:1;
-});
-
-$('tasklist').innerHTML=
-taskListHtml(all);
-
-bindTaskButtons($('tasklist'));
-
-var ev=S.evals.slice().sort(function(a,b){
-return a.date<b.date?-1:1;
-});
-
-$('evallist').innerHTML=
-ev.length?
-ev.map(function(e){
-
-return '<div class="taskrow">'+
-'<div class="tasktop">'+
-'<div class="n">'+
-'<b>'+esc(e.subject)+'</b>'+
-'<small>'+
-'Evaluación: '+sh(e.date)+
-' · aviso: '+sh(addDays(e.date,-3))+
-(e.group?' · '+esc(e.group):'')+
-(e.note?' · '+esc(e.note):'')+
-'</small>'+
-'</div>'+
-'<button class="b d" data-evaldel="'+e.id+'">×</button>'+
-'</div>'+
-'</div>';
-
-}).join(''):
-'<p class="ep">No has guardado fechas de evaluación.</p>';
-
-var ed=$('evallist').querySelectorAll('[data-evaldel]');
-
-for(var j=0;j<ed.length;j++){
-
-ed[j].onclick=function(){
-
-var id=this.getAttribute('data-evaldel');
-
-S.evals=S.evals.filter(function(e){
-return String(e.id)!==String(id);
-});
-
-save();
-rplan();
-};
-}
-}
-
-/* NOTAS */
-
-function nk(gi,mi,ui,ai){
-return gi+'|'+mi+'|'+ui+'|'+ai;
-}
-
-function cellN(gi,mi,ui,ai){
-return S.nt[nk(gi,mi,ui,ai)]||{};
-}
-
-function utN(gi,mi,ui,ai){
-
-var c=cellN(gi,mi,ui,ai);
-
-if(
-c.e===undefined||
-c.e===null||
-c.t===undefined||
-c.t===null
-){
-return null;
-}
-
-return (c.e*S.pe+c.t*(100-S.pe))/100;
-}
-
-function totW(mx,ra){
-
-var s=0;
-
-for(var i=0;i<mx.ut.length;i++){
-
-if(mx.ut[i][3][ra]){
-s+=mx.ut[i][3][ra];
-}
-}
-
-return s;
-}
-
-function raCalc(gi,mi,ai,ra,empShare){
-
-var mx=mxOf(mi);
-var acc=0;
-var pe=0;
-var tot=totW(mx,ra);
-
-for(var i=0;i<mx.ut.length;i++){
-
-var w=mx.ut[i][3][ra];
-
-if(!w)continue;
-
-var n=utN(gi,mi,i,ai);
-
-if(n!==null){
-acc+=n*w;
-pe+=w;
-}
-}
-
-var centro=pe?acc/pe:null;
-var pct=tot?Math.round(pe/tot*100):0;
-var fin=centro;
-
-if(centro!==null&&empShare){
-fin=centro*(1-empShare)+S.empN*empShare;
-}
-
-var r=S.rec[gi+'|'+mi+'|'+ra+'|'+ai];
-
-if(
-r!==undefined &&
-r!==null &&
-(fin===null||r>fin)
-){
-fin=r;
-}
-
-return{
-c:centro,
-f:fin,
-pct:pct
-};
-}
-
-function modN(gi,mi,ai){
-
-var mx=mxOf(mi);
-var acc=0;
-var wp=0;
-var full=true;
-var low=false;
-
-for(var i=0;i<mx.ra.length;i++){
-
-var r=mx.ra[i];
-var x=raCalc(gi,mi,ai,r[0],r[3]);
-
-if(x.pct<100||x.f===null){
-full=false;
-}
-
-if(x.f!==null&&x.f<5){
-low=true;
-}
-
-if(x.f!==null){
-acc+=x.f*r[2];
-wp+=r[2];
-}
-}
-
-return{
-m:wp?acc/wp:null,
-full:full,
-low:low
-};
-}
-
-function rnot(){
-
-chips($('ng2'),gn(),'ng',rnot);
-
-chips($('nmod'),S.subj,'nm',function(){
-ut=0;
-rnot();
-});
-
-var mx=mxOf(sel.nm);
-var g=S.g[sel.ng];
-
-if(!g||!g.st.length){
-
-$('nobody').innerHTML=
-'<p class="ep">Este grupo no tiene alumnos. Añádelos en Ajustes.</p>';
-
-$('nwrap').className='hide';
-
-return;
-}
-
-if(!mx){
-
-$('nobody').innerHTML=
-'<p class="ep">El módulo <b>'+
-esc(S.subj[sel.nm]||'')+
-'</b> todavía no tiene matriz de resultados de aprendizaje.</p>';
-
-$('nwrap').className='hide';
-
-return;
-}
-
-$('nobody').innerHTML='';
-$('nwrap').className='';
-
-$('npane').innerHTML=
-'<button data-p="meter" class="'+(pane==='meter'?'on':'')+'">Meter notas</button>'+
-'<button data-p="avance" class="'+(pane==='avance'?'on':'')+'">Avance por RA</button>';
-
-var ps=$('npane').querySelectorAll('button');
-
-for(var i=0;i<ps.length;i++){
-
-ps[i].onclick=function(){
-
-pane=this.getAttribute('data-p');
-
-rnot();
-};
-}
-
-$('pn-meter').className=
-pane==='meter'?'':'hide';
-
-$('pn-avance').className=
-pane==='avance'?'':'hide';
-
-if(pane==='meter'){
-rmeter(mx,g);
-}else{
-ravance(mx,g);
-}
-}
-
-function rmeter(mx,g){
-
-$('utc').innerHTML=
-mx.ut.map(function(u,i){
-
-var done=0;
-
-for(var a=0;a<g.st.length;a++){
-
-if(utN(sel.ng,sel.nm,i,a)!==null){
-done++;
-}
-}
-
-return '<button data-u="'+i+'" class="'+
-(i===ut?'on':'')+
-(done&&done===g.st.length?' ok':'')+
-'">'+u[0]+'</button>';
-
-}).join('');
-
-var bs=$('utc').querySelectorAll('button');
-
-for(var i=0;i<bs.length;i++){
-
-bs[i].onclick=function(){
-
-ut=+this.getAttribute('data-u');
-
-rnot();
-};
-}
-
-if(ut>=mx.ut.length){
-ut=0;
-}
-
-var u=mx.ut[ut];
-var ws=[];
-
-for(var r in u[3]){
-ws.push(r+' ('+u[3][r]+' p.p.)');
-}
-
-var fe=[];
-
-for(var z=0;z<mx.ra.length;z++){
-
-if(u[3][mx.ra[z][0]]&&mx.ra[z][3]){
-
-fe.push(
-mx.ra[z][0]+
-' FFE '+
-(mx.ra[z][3]*100).toFixed(2)+
-'% del RA'
-);
-}
-}
-
-$('uti').innerHTML=
-'<b>'+u[0]+' '+esc(u[1])+'</b><br>'+
-'Trimestre '+u[2]+
-' · '+u[4]+' sesiones · aporta a '+
-ws.join(' y ')+
-(fe.length?'<br>'+fe.join(' · '):'');
-
-$('ugrid').innerHTML=
-g.st.map(function(nm,a){
-
-var c=cellN(sel.ng,sel.nm,ut,a);
-var n=utN(sel.ng,sel.nm,ut,a);
-
-return '<div class="gg">'+
-'<span class="n">'+esc(nm)+'</span>'+
-'<input type="number" step="0.01" min="0" max="10" data-f="e" data-a="'+a+'" value="'+
-(c.e===undefined||c.e===null?'':c.e)+'">'+
-'<input type="number" step="0.01" min="0" max="10" data-f="t" data-a="'+a+'" value="'+
-(c.t===undefined||c.t===null?'':c.t)+'">'+
-'<span class="r" style="color:'+
-(n===null?'var(--fa)':(n<5?'var(--rd)':'var(--ok)'))+
-'">'+
-(n===null?'—':n.toFixed(2))+
-'</span>'+
-'</div>';
-
-}).join('');
-
-var ins=$('ugrid').querySelectorAll('input');
-
-for(var i=0;i<ins.length;i++){
-
-ins[i].onchange=function(){
-
-var a=this.getAttribute('data-a');
-var f=this.getAttribute('data-f');
-var k=nk(sel.ng,sel.nm,ut,a);
-
-var o=S.nt[k]||(S.nt[k]={});
-var v=num(this.value);
-
-if(v===null){
-delete o[f];
-}else{
-o[f]=Math.max(0,Math.min(10,v));
-}
-
-save();
-rnot();
-};
-}
-}
-
-function ravance(mx,g){
-
-$('avlst').innerHTML=
-g.st.map(function(nm,a){
-
-var md=modN(sel.ng,sel.nm,a);
-
-var est=
-md.full?
-(
-(md.low&&S.gate)?
-'<span class="bd f">No superado</span>':
-'<span class="bd s">Superado</span>'
-):
-'<span class="bd">En curso</span>';
-
-var bars=
-mx.ra.map(function(r){
-
-var x=raCalc(sel.ng,sel.nm,a,r[0],r[3]);
-
-var col=
-x.f===null?
-'p':
-(x.f<5?'b':'');
-
-var rc='';
-
-if(x.pct===100&&x.f!==null&&x.f<5){
-
-rc=' <input type="number" step="0.01" min="0" max="10" placeholder="rec." style="width:58px;border:1px solid var(--ru);border-radius:6px;padding:3px;text-align:center" data-rc="'+r[0]+'_'+a+'" value="'+
-(S.rec[sel.ng+'|'+sel.nm+'|'+r[0]+'|'+a]||'')+
-'">';
-}
-
-return '<div class="ral">'+
-'<div class="l">'+
-'<span>'+
-r[0]+' · '+esc(r[1])+
-(r[3]?' · FFE '+(r[3]*100).toFixed(2)+'% del RA':'')+
-'</span>'+
-'<span>'+
-(x.f===null?'—':x.f.toFixed(2))+
-' · '+x.pct+'%'+rc+
-'</span>'+
-'</div>'+
-'<div class="tk"><i class="'+col+'" style="width:'+x.pct+'%"></i></div>'+
-'</div>';
-
-}).join('');
-
-return '<div class="av">'+
-'<div class="t">'+
-'<b>'+esc(nm)+'</b>'+
-'<span style="font-weight:650">'+
-(md.m===null?'—':md.m.toFixed(2))+
-' '+est+
-'</span>'+
-'</div>'+
-bars+
-'</div>';
-
-}).join('');
-
-var rs=$('avlst').querySelectorAll('[data-rc]');
-
-for(var i=0;i<rs.length;i++){
-
-rs[i].onchange=function(){
-
-var p=this.getAttribute('data-rc').split('_');
-
-var k=
-sel.ng+'|'+
-sel.nm+'|'+
-p[0]+'|'+
-p[1];
-
-var v=num(this.value);
-
-if(v===null){
-delete S.rec[k];
-}else{
-S.rec[k]=Math.max(0,Math.min(10,v));
-}
-
-save();
-rnot();
-};
-}
-}
-
-function tablaN(){
-
-var mx=mxOf(sel.nm);
-var g=S.g[sel.ng];
-
-if(!mx||!g)return '';
-
-var o=
-'NOTAS · '+g.n+' · '+S.subj[sel.nm]+
-'\n\nRESUMEN POR RA\nAlumno';
-
-mx.ra.forEach(function(r){
-o+='\t'+r[0]+' nota\t'+r[0]+' % evaluado';
-});
-
-o+='\tMedia\tEstado\n';
-
-g.st.forEach(function(nm,a){
-
-var md=modN(sel.ng,sel.nm,a);
-
-o+=nm;
-
-mx.ra.forEach(function(r){
-
-var x=raCalc(sel.ng,sel.nm,a,r[0],r[3]);
-
-o+='\t'+
-(x.f===null?'':x.f.toFixed(2))+
-'\t'+x.pct;
-});
-
-o+='\t'+
-(md.m===null?'':md.m.toFixed(2))+
-'\t'+
-(
-md.full?
-(
-(md.low&&S.gate)?
-'No superado':
-'Superado'
-):
-'En curso'
-)+
-'\n';
-
-});
-
-o+='\nNOTAS POR UNIDAD\nAlumno';
-
-mx.ut.forEach(function(u){
-
-o+='\t'+u[0]+' Ex'+
-'\t'+u[0]+' Tarea'+
-'\t'+u[0]+' Nota';
-});
-
-o+='\n';
-
-g.st.forEach(function(nm,a){
-
-o+=nm;
-
-mx.ut.forEach(function(u,i){
-
-var c=cellN(sel.ng,sel.nm,i,a);
-var n=utN(sel.ng,sel.nm,i,a);
-
-o+='\t'+
-(c.e===undefined?'':c.e)+
-'\t'+
-(c.t===undefined?'':c.t)+
-'\t'+
-(n===null?'':n.toFixed(2));
-});
-
-o+='\n';
-});
-
-return o;
-}
-
-/* SEGUIMIENTO */
-
-function subjectIndex(name){
-
-for(var i=0;i<S.subj.length;i++){
-
-if(S.subj[i]===name)return i;
-}
-
-return -1;
-}
-
-function plannedOnDate(plan,ds){
-
-if(
-ds<plan.start||
-ds>plan.end||
-schoolOff(ds)
-){
-return 0;
-}
-
-return plan.schedule[pd(ds).getDay()]||0;
-}
-
-function monthTeaching(x){
-return x[4]===undefined?x[0]:x[4];
-}
-
-function expectedUntil(plan,ds){
-
-if(ds<plan.start)return 0;
-
-var end=ds>plan.end?plan.end:ds;
-var ym=end.slice(0,7);
-var keys=Object.keys(plan.months).sort();
-var n=0;
-
-for(var i=0;i<keys.length;i++){
-
-var k=keys[i];
-var x=plan.months[k];
-var mp=monthTeaching(x);
-
-if(k<ym){
-n+=mp;
-continue;
-}
-
-if(k>ym)break;
-
-var md=pd(k+'-01');
-var last=new Date(md.getFullYear(),md.getMonth()+1,0);
-var tot=0;
-var el=0;
-var d=new Date(md);
-
-while(d<=last){
-
-var s=iso(d);
-var v=plannedOnDate(plan,s);
-
-tot+=v;
-
-if(s<=end){
-el+=v;
-}
-
-d.setDate(d.getDate()+1);
-}
-
-n+=tot?
-Math.round(mp*el/tot):
-(end>=k+'-01'?mp:0);
-
-break;
-}
-
-return n;
-}
-
-function actualBetween(name,a,b){
-
-var mi=subjectIndex(name);
-
-if(mi<0)return 0;
-
-var n=0;
-
-for(var i=0;i<S.ent.length;i++){
-
-var e=S.ent[i];
-
-if(
-e.t!==0||
-e.m!==mi||
-e.d<a||
-e.d>b
-){
-continue;
-}
-
-var v=Number(e.ses);
-
-if(!v||v<1){
-
-var p=planByName(name);
-
-v=p?
-(p.schedule[pd(e.d).getDay()]||1):
-1;
-}
-
-n+=v;
-}
-
-return n;
-}
-
-function actualMonth(name,ym){
-
-var a=ym+'-01';
-var d=pd(a);
-
-var b=ym+'-'+p2(
-new Date(
-d.getFullYear(),
-d.getMonth()+1,
-0
-).getDate()
-);
-
-return actualBetween(name,a,b);
-}
-
-function lastUT(name,ds){
-
-var mi=subjectIndex(name);
-var mx=S.mx[name];
-var best=null;
-
-if(mi<0||!mx)return null;
-
-for(var i=0;i<S.ent.length;i++){
-
-var e=S.ent[i];
-
-if(
-e.t===0 &&
-e.m===mi &&
-e.d<=ds &&
-e.u!==undefined &&
-mx.ut[e.u] &&
-(
-!best ||
-e.d>best.d ||
-(e.d===best.d&&e.id>best.id)
-)
-){
-best=e;
-}
-}
-
-return best?
-mx.ut[best.u][0]+' · '+mx.ut[best.u][1]:
-null;
-}
-
-function deltaClass(d){
-return d<0?'bad':(d>0?'mid':'ok');
-}
-
-function rseg(){
-
-var names=Object.keys(PLANS).filter(function(n){
-return S.subj.indexOf(n)>=0;
-});
-
-if(!names.length){
-
-$('segout').innerHTML=
-'<p class="ep">No hay módulos con temporalización configurada.</p>';
-
-return;
-}
-
-if(sel.sm>=names.length){
-sel.sm=0;
-}
-
-chips($('segmods'),names,'sm',rseg);
-
-if(!segDate){
-
-segDate=
-(TD>='2026-09-01'&&TD<='2027-06-30')?
-TD:
-'2026-09-14';
-}
-
-$('segd').value=segDate;
-
-var name=names[sel.sm];
-var p=PLANS[name];
-var ex=expectedUntil(p,segDate);
-var ac=actualBetween(name,p.start,segDate);
-var de=ac-ex;
-var prog=Math.min(100,Math.round(ac/p.target*100));
-var ym=segDate.slice(0,7);
-var pm=p.months[ym];
-var last=lastUT(name,segDate);
-var ffe='';
-
-if(name==='Presentación y venta al público'){
-
-ffe=
-'<div class="noteinfo">'+
-'<b>FFE PVPP:</b> '+
-'La parte de empresa equivale aproximadamente al <b>13,64% de la nota del módulo</b>. '+
-'La nota por defecto es 10, editable en Ajustes.'+
-'</div>';
-}
-
-var warn=
-p.adjust?
-'<div class="noteinfo"><b>Atención:</b> '+esc(p.note)+'</div>':
-'<div class="noteinfo">'+esc(p.note)+'</div>';
-
-var h=
-'<div class="card">'+
-'<h3>'+esc(name)+'</h3>'+
-'<div class="trkgrid">'+
-
-'<div class="trkmetric">'+
-'<b>'+ex+'</b>'+
-'<small>sesiones esperadas hasta '+sh(segDate)+'</small>'+
-'</div>'+
-
-'<div class="trkmetric">'+
-'<b>'+ac+'</b>'+
-'<small>sesiones registradas hasta esa fecha</small>'+
-'</div>'+
-
-'<div class="trkmetric">'+
-'<b class="delta '+deltaClass(de)+'">'+
-(de>0?'+':'')+de+
-'</b>'+
-'<small>desviación real − prevista</small>'+
-'</div>'+
-
-'<div class="trkmetric">'+
-'<b>'+p.target+'</b>'+
-'<small>sesiones curriculares del módulo</small>'+
-'</div>'+
-
-'</div>'+
-
-'<div class="progline">'+
-'<span>Avance curricular registrado</span>'+
-'<span>'+prog+'%</span>'+
-'</div>'+
-
-'<div class="progbar">'+
-'<i style="width:'+prog+'%"></i>'+
-'</div>';
-
-if(pm){
-
-h+=
-'<div class="noteinfo">'+
-'<b>'+ymName(ym)+':</b> '+
-pm[0]+' periodos previstos'+
-(
-monthTeaching(pm)!==pm[0]?
-' ('+
-monthTeaching(pm)+
-' de docencia + '+
-(pm[0]-monthTeaching(pm))+
-' de margen)':
-''
-)+
-' · '+esc(pm[1])+
-' · '+esc(pm[2])+
-'<br>'+esc(pm[3])+
-'</div>';
-}
-
-if(last){
-
-h+='<p class="hi"><b>Última UT registrada:</b> '+esc(last)+'</p>';
-
-}else{
-
-h+='<p class="hi">Todavía no has etiquetado ninguna UT como trabajada en este módulo.</p>';
-}
-
-h+=warn+ffe+'</div>';
-
-var rows='';
-var keys=Object.keys(p.months).sort();
-
-for(var i=0;i<keys.length;i++){
-
-var k=keys[i];
-var x=p.months[k];
-var a=actualMonth(name,k);
-var pp=monthTeaching(x);
-var d=a-pp;
-
-rows+=
-'<tr class="'+(k===ym?'now':'')+'">'+
-'<td>'+ymName(k).replace(' 2026','').replace(' 2027','')+'</td>'+
-'<td>'+pp+'</td>'+
-'<td>'+a+'</td>'+
-'<td class="delta '+deltaClass(d)+'">'+
-(d>0?'+':'')+d+
-'</td>'+
-'</tr>';
-}
-
-h+=
-'<div class="card">'+
-'<h3>Desviación mes a mes</h3>'+
-'<table class="mtable">'+
-'<tr>'+
-'<th>Mes</th>'+
-'<th>Prev.</th>'+
-'<th>Real</th>'+
-'<th>Δ</th>'+
-'</tr>'+
-rows+
-'</table>'+
-'<p class="hi">Real suma las sesiones registradas como <b>Lo trabajado</b>.</p>'+
-'</div>';
-
-$('segout').innerHTML=h;
-}
-
-/* AJUSTES */
-
-function raj(){
-
-$('wd').innerHTML=
-WD.map(function(d){
-
-return '<button data-w="'+d[0]+'" class="'+
-(S.days.indexOf(d[0])>=0?'on':'')+
-'">'+d[1]+'</button>';
-
-}).join('');
-
-var bs=$('wd').querySelectorAll('button');
-
-for(var i=0;i<bs.length;i++){
-
-bs[i].onclick=function(){
-
-var w=+this.getAttribute('data-w');
-var x=S.days.indexOf(w);
-
-if(x>=0){
-S.days.splice(x,1);
-}else{
-S.days.push(w);
-}
-
-save();
-raj();
-rcal();
-};
-}
-
-$('glst').innerHTML=
-S.g.map(function(g,gi){
-
-return '<div class="ir" style="margin-top:14px">'+
-'<input value="'+esc(g.n)+'" data-gn="'+gi+'">'+
-'<button class="x" data-gd="'+gi+'">&times;</button>'+
-'</div>'+
-
-g.st.map(function(n,i){
-
-return '<div class="ir">'+
-'<input value="'+esc(n)+'" data-sn="'+gi+'_'+i+'">'+
-'<button class="x" data-sd="'+gi+'_'+i+'">&times;</button>'+
-'</div>';
-
-}).join('')+
-
-'<div class="ir" style="margin-top:8px">'+
-'<input data-newst="'+gi+'" placeholder="Nuevo alumno">'+
-'<button class="b" data-addst="'+gi+'">Añadir alumno</button>'+
-'</div>'+
-
-'<textarea data-pl="'+gi+'" placeholder="O pega aquí varios alumnos, uno por línea" style="min-height:66px"></textarea>'+
-'<button class="b" data-pb="'+gi+'" style="margin-top:6px">Añadir lista</button>';
-
-}).join('') ||
-'<p class="ep">Sin grupos todavía.</p>';
-
-bind('gn',function(e,i){
-
-S.g[i].n=
-e.value.trim()||
-S.g[i].n;
-});
-
-bind('sn',function(e,i){
-
-var a=i.split('_');
-
-S.g[a[0]].st[a[1]]=
-e.value.trim()||
-S.g[a[0]].st[a[1]];
-});
-
-click('gd',function(i){
-
-if(!confirm('¿Quitar el grupo entero?'))return;
-
-S.g.splice(i,1);
-
-sel.ag=0;
-sel.g=0;
-sel.sg=0;
-sel.ng=0;
-
-save();
-rall();
-});
-
-click('sd',function(i){
-
-var a=i.split('_');
-
-S.g[a[0]].st.splice(a[1],1);
-
-save();
-rall();
-});
-
-click('addst',function(i){
-
-var el=$('glst').querySelector('[data-newst="'+i+'"]');
-
-var n=el.value.trim();
-
-if(!n)return;
-
-S.g[i].st.push(n);
-
-save();
-rall();
-tos('Alumno añadido');
-});
-
-click('pb',function(i){
-
-var t=$('glst')
-.querySelector('[data-pl="'+i+'"]')
-.value
-.split('\n');
-
-for(var j=0;j<t.length;j++){
-
-var n=t[j].trim();
-
-if(n){
-S.g[i].st.push(n);
-}
-}
-
-save();
-rall();
-tos('Alumnos añadidos');
-});
-
-$('mlst').innerHTML=
-S.subj.map(function(m,i){
-
-return '<div class="ir">'+
-'<input value="'+esc(m)+'" data-mn="'+i+'">'+
-(S.mx[m]?'<span class="bd s">RA</span>':'')+
-(PLANS[m]?'<span class="bd">plan</span>':'')+
-'<button class="x" data-md="'+i+'">&times;</button>'+
-'</div>';
-
-}).join('');
-
-bind('mn',function(e,i){
-
-var old=S.subj[i];
-var nv=e.value.trim()||old;
-
-if(S.mx[old]&&nv!==old){
-
-S.mx[nv]=S.mx[old];
-
-delete S.mx[old];
-}
-
-S.subj[i]=nv;
-});
-
-click('md',function(i){
-
-S.subj.splice(i,1);
-
-sel.m=0;
-sel.nm=0;
-
-save();
-rall();
-});
-
-$('pe').value=S.pe;
-$('gate').checked=!!S.gate;
-$('empn').value=S.empN;
-
-var keys=Object.keys(S.mx);
-
-if(sel.mx>=keys.length){
-sel.mx=0;
-}
-
-$('mxsel').innerHTML=
-keys.map(function(k,i){
-
-return '<button data-mx="'+i+'" class="'+
-(sel.mx===i?'on':'')+
-'">'+esc(k)+'</button>';
-
-}).join('') ||
-'<span class="hi">Ningún módulo tiene matriz todavía.</span>';
-
-var ms=$('mxsel').querySelectorAll('[data-mx]');
-
-for(var i=0;i<ms.length;i++){
-
-ms[i].onclick=function(){
-
-sel.mx=+this.getAttribute('data-mx');
-
-raj();
-};
-}
-
-var mx=S.mx[keys[sel.mx]];
-
-if(mx){
-
-var h='<table><tr><th>UT</th>';
-
-h+=mx.ra.map(function(r){
-return '<th>'+r[0]+'</th>';
-}).join('');
-
-h+='</tr>';
-
-for(var i=0;i<mx.ut.length;i++){
-
-h+='<tr><td>'+mx.ut[i][0]+'</td>';
-
-for(var j=0;j<mx.ra.length;j++){
-
-h+='<td>'+
-(mx.ut[i][3][mx.ra[j][0]]||'')+
-'</td>';
-}
-
-h+='</tr>';
-}
-
-h+='<tr><th>Suma tabla</th>';
-
-h+=mx.ra.map(function(r){
-return '<th>'+totW(mx,r[0]).toFixed(2)+'</th>';
-}).join('');
-
-h+='</tr>';
-
-h+='<tr><th>Peso RA</th>';
-
-h+=mx.ra.map(function(r){
-return '<th>'+r[2].toFixed(2)+'%</th>';
-}).join('');
-
-h+='</tr>';
-
-h+='<tr><th>FFE dentro RA</th>';
-
-h+=mx.ra.map(function(r){
-return '<th>'+
-(r[3]?(r[3]*100).toFixed(2)+'%':'—')+
-'</th>';
-}).join('');
-
-h+='</tr></table>';
-
-var ft=0;
-
-mx.ra.forEach(function(r){
-ft+=r[2]*r[3];
-});
-
-h+='<p class="hi">'+
-'FFE ponderada en el módulo: <b>'+
-ft.toFixed(2)+
-'%</b>.</p>';
-
-$('mtx').innerHTML=h;
-
-}else{
-
-$('mtx').innerHTML='';
-}
-
-var so=S.cal.slice().sort(function(a,b){
-return a[1]<b[1]?-1:1;
-});
-
-$('rlst').innerHTML=
-so.map(function(r){
-
-var w=
-r[1]===r[2]?
-sh(r[1]):
-sh(r[1])+' – '+sh(r[2]);
-
-return '<div class="ri">'+
-'<i style="background:'+TC[r[0]]+'"></i>'+
-'<span>'+
-esc(r[3])+
-'<small>'+w+'</small>'+
-'</span>'+
-'<button class="x" data-rd="'+r[1]+'|'+r[3]+'">&times;</button>'+
-'</div>';
-
-}).join('');
-
-click('rd',function(v){
-
-var a=String(v).split('|');
-
-S.cal=S.cal.filter(function(r){
-
-return !(r[1]===a[0]&&r[3]===a[1]);
-});
-
-save();
-rall();
-tos('Fecha quitada');
-});
-}
-
-function bind(at,fn){
-
-var es=document.querySelectorAll('[data-'+at+']');
-
-for(var i=0;i<es.length;i++){
-
-es[i].onchange=function(){
-
-fn(this,this.getAttribute('data-'+at));
-
-save();
-rall();
-};
-}
-}
-
-function click(at,fn){
-
-var es=document.querySelectorAll('[data-'+at+']');
-
-for(var i=0;i<es.length;i++){
-
-es[i].onclick=function(){
-
-fn(this.getAttribute('data-'+at));
-};
-}
-}
-
-function setv(v){
-
-V=v;
-
-var ns=document.querySelectorAll('nav button');
-
-for(var i=0;i<ns.length;i++){
-
-ns[i].className=
-ns[i].getAttribute('data-v')===v?
-'on':
-'';
-}
-
-['cal','seg','hor','dia','dia2','plan','not','aj'].forEach(function(x){
-
-$('v-'+x).className=
-x===v?
-'':
-'hide';
-});
-
-window.scrollTo(0,0);
-
-rall();
-}
-
-function rall(){
-
-if(V==='cal')rcal();
-if(V==='seg')rseg();
-if(V==='hor')rhor();
-if(V==='dia')rdia();
-if(V==='dia2')rdia2();
-if(V==='plan')rplan();
-if(V==='not')rnot();
-if(V==='aj')raj();
-}
-
-/* EVENTOS */
-
-var ns=document.querySelectorAll('nav button');
-
-for(var i=0;i<ns.length;i++){
-
-ns[i].onclick=function(){
-
-setv(this.getAttribute('data-v'));
-};
-}
-
-$('pm').onclick=function(){
-cur.setMonth(cur.getMonth()-1);
-rcal();
-};
-
-$('nm').onclick=function(){
-cur.setMonth(cur.getMonth()+1);
-rcal();
-};
-
-$('ophor').onclick=function(){
-setv('hor');
-};
-
-$('backhor').onclick=function(){
-setv('cal');
-};
-
-$('ttadd').onclick=function(){
-
-var x={
-id:Date.now(),
-d:+$('ttday').value,
-a:$('ttstart').value,
-b:$('ttend').value,
-s:$('ttsubj').value,
-g:$('ttgroup').value
-};
-
-if(!x.a||!x.b||!x.s){
-
-tos('Completa día, horas y módulo');
-
-return;
-}
-
-S.tt.push(x);
-
-save();
-rhor();
-tos('Clase añadida al horario');
-};
-
-$('opseg').onclick=function(){
-
-segDate=
-(TD>='2026-09-01'&&TD<='2027-06-30')?
-TD:
-'2026-09-14';
-
-setv('seg');
-};
-
-$('backseg').onclick=function(){
-setv('cal');
-};
-
-$('segd').onchange=function(){
-
-if(this.value){
-
-segDate=this.value;
-
-rseg();
-}
-};
-
-$('notifbtn').onclick=function(){
-
-if(!('Notification' in window)){
-
-tos('Este navegador no permite avisos');
-
-return;
-}
-
-if(Notification.permission==='granted'){
-
-tos('Los avisos ya están activados');
-
-return;
-}
-
-Notification.requestPermission().then(function(){
-
-rplan();
-checkAlerts();
-});
-};
-
-$('taskadd').onclick=function(){
-
-var d=$('taskdate').value;
-var t=$('tasktitle').value.trim();
-
-if(!d||!t){
-
-tos('Pon fecha y tarea');
-
-return;
-}
-
-S.tasks.push({
-id:Date.now(),
-date:d,
-title:t,
-subject:$('tasksubj').value,
-note:$('tasknote').value.trim(),
-done:false
-});
-
-$('tasktitle').value='';
-$('tasknote').value='';
-
-save();
-rplan();
-checkAlerts();
-
-tos('Tarea añadida');
-};
-
-$('evaladd').onclick=function(){
-
-var d=$('evaldate').value;
-var su=$('evalsubj').value;
-
-if(!d||!su){
-
-tos('Pon fecha y asignatura');
-
-return;
-}
-
-S.evals.push({
-id:Date.now(),
-date:d,
-subject:su,
-group:$('evalgroup').value,
-note:$('evalnote').value.trim(),
-done:false
-});
-
-$('evalnote').value='';
-
-save();
-rplan();
-checkAlerts();
-
-tos('Evaluación guardada · aviso 3 días antes');
-};
-
-$('pd').onclick=function(){
-
-day.setDate(day.getDate()-1);
-
-rdia();
-};
-
-$('nd').onclick=function(){
-
-day.setDate(day.getDate()+1);
-
-rdia();
-};
-
-$('dp').onchange=function(){
-
-if(this.value){
-
-day=pd(this.value);
-
-rdia();
-}
-};
-
-$('allp').onclick=function(){
-
-var g=S.g[sel.ag];
-
-if(!g)return;
-
-var k=ak(iso(day),sel.ag);
-
-var r=S.att[k]||(S.att[k]={});
-
-for(var i=0;i<g.st.length;i++){
-
-if(!r[i]){
-r[i]='P';
-}
-}
-
-save();
-ratt();
-tos('Marcados');
-};
-
-$('sv').onclick=function(){
-
-var t=$('tx').value.trim();
-
-if(!t){
-
-$('mh').textContent=
-'Escribe o dicta algo primero.';
-
-return;
-}
-
-if(!S.g.length){
-
-$('mh').textContent=
-'Añade un grupo en Ajustes.';
-
-return;
-}
-
-stop();
-
-var e={
-id:Date.now(),
-d:iso(day),
-g:sel.g,
-m:sel.m,
-t:sel.t,
-x:t
-};
-
-if(sel.t===0){
-
-var mx=mxOf(sel.m);
-var p=planOf(sel.m);
-
-if(mx){
-e.u=sel.du;
-}
-
-if(p){
-
-var sv=parseInt($('ses').value,10);
-
-e.ses=
-isNaN(sv)||sv<1?
-defaultSessions(sel.m,e.d):
-sv;
-}
-}
-
-S.ent.push(e);
-
-$('tx').value='';
-
-save();
-rent();
-
-$('mh').textContent='Guardado.';
-};
-
-var SR=
-window.SpeechRecognition||
-window.webkitSpeechRecognition;
-
-var rc=null;
-var on=false;
-var bs2='';
-
-function stop(){
-
-on=false;
-
-if(rc){
-
-try{
-
-rc.onend=null;
-rc.stop();
-
-}catch(e){}
-
-rc=null;
-}
-
-$('mic').className='b g';
-$('mic').textContent='Dictar';
-}
-
-$('mic').onclick=function(){
-
-if(!SR){
-
-$('mh').textContent=
-'Este navegador no permite dictar. Usa el micrófono del teclado.';
-
-return;
-}
-
-if(on){
-
-stop();
-
-$('mh').textContent=
-'Parado. Revisa y guarda.';
-
-return;
-}
-
-rc=new SR();
-
-rc.lang='es-ES';
-rc.continuous=true;
-rc.interimResults=true;
-
-bs2=$('tx').value;
-
-if(bs2&&bs2.slice(-1)!==' '){
-bs2+=' ';
-}
-
-rc.onresult=function(ev){
-
-var f='';
-var it='';
-
-for(var i=ev.resultIndex;i<ev.results.length;i++){
-
-var tr=ev.results[i][0].transcript;
-
-if(ev.results[i].isFinal){
-f+=tr+' ';
-}else{
-it+=tr;
-}
-}
-
-if(f){
-bs2+=f;
-}
-
-$('tx').value=bs2+it;
-};
-
-rc.onerror=function(ev){
-
-stop();
-
-$('mh').textContent=
-(ev.error==='not-allowed')?
-'Falta permiso de micrófono.':
-'Se ha cortado. Prueba otra vez.';
-};
-
-rc.onend=function(){
-
-if(on){
-
-try{
-rc.start();
-}catch(e){
-stop();
-}
-}
-};
-
-try{
-rc.start();
-}catch(e){
-
-$('mh').textContent=
-'No se ha podido iniciar.';
-
-return;
-}
-
-on=true;
-
-this.className='b g r';
-this.textContent='Parar';
-
-$('mh').textContent='Te escucho.';
-};
-
-function bdiary(){
-
-var o='DIARIO DE AULA · Curso 2026/2027\n';
-
-dates().forEach(function(d){
-
-o+='\n'+lon(d).toUpperCase()+'\n';
-
-for(var gi=0;gi<S.g.length;gi++){
-
-var l=ali(d,gi);
-
-if(l){
-o+='  '+l+'\n';
-}
-}
-
-S.ent.filter(function(e){
-return e.d===d;
-}).forEach(function(e){
-
-o+='  · '+
-(S.g[e.g]?S.g[e.g].n:'')+
-' / '+
-(S.subj[e.m]||'')+
-' — '+
-(TY[e.t]?TY[e.t][1]:'')+
-entryMeta(e)+
-': '+
-e.x+
-'\n';
-});
-});
-
-return o;
-}
-
-function btable(){
-
-var o=
-'RESUMEN DE ASISTENCIA\n'+
-'Grupo\tAlumno\tDías\tPresentes\tRetrasos\tFaltas\tJustificadas\t%\n';
-
-S.g.forEach(function(g,gi){
-
-g.st.forEach(function(n,i){
-
-var s=stats(gi,i);
-
-o+=
-g.n+'\t'+
-n+'\t'+
-s.t+'\t'+
-s.p+'\t'+
-s.r+'\t'+
-s.f+'\t'+
-s.j+'\t'+
-(s.pc===null?'':s.pc)+
-'\n';
-});
-});
-
-var MN={
-P:'Presente',
-R:'Retraso',
-F:'Falta',
-J:'Justificada'
-};
-
-o+='\nDIA A DIA\nFecha\tGrupo\tAlumno\tMarca\n';
-
-dates().forEach(function(d){
-
-S.g.forEach(function(g,gi){
-
-var r=S.att[ak(d,gi)];
-
-if(!r)return;
-
-g.st.forEach(function(n,i){
-
-if(r[i]){
-
-o+=
-d+'\t'+
-g.n+'\t'+
-n+'\t'+
-MN[r[i]]+
-'\n';
-}
-});
-});
-});
-
-return o;
-}
-
-function cp(t,m){
-
-if(
-navigator.clipboard&&
-navigator.clipboard.writeText
-){
-
-navigator.clipboard.writeText(t).then(
-function(){tos(m)},
-function(){pop(t)}
-);
-
-}else{
-
-pop(t);
-}
-}
-
-function pop(t){
-
-var a=$('bk');
-
-a.className='';
-a.value=t;
-a.focus();
-a.select();
-
-tos('Copia el texto a mano');
-}
-
-$('cpd').onclick=function(){
-cp(bdiary(),'Diario copiado');
-};
-
-$('cpt').onclick=function(){
-cp(btable(),'Asistencia copiada');
-};
-
-$('cpn').onclick=function(){
-
-var t=tablaN();
-
-if(!t){
-
-tos('Nada que copiar');
-
-return;
-}
-
-cp(t,'Notas copiadas');
-};
-
-$('cpb').onclick=function(){
-
-cp(
-JSON.stringify(S),
-'Copia hecha'
-);
-};
-
-$('rsb').onclick=function(){
-
-var a=$('bk');
-
-if(a.className==='hide'){
-
-a.className='';
-
-tos('Pega la copia y pulsa Restaurar otra vez');
-
-return;
-}
-
-try{
-
-var d=JSON.parse(a.value);
-
-if(!d.g)throw 0;
-
-S=d;
-
-normalizeState();
-
-save();
-
-a.className='hide';
-a.value='';
-
-rall();
-
-tos('Restaurado');
-
-}catch(e){
-
-tos('Ese texto no es una copia válida');
-}
-};
-
-$('agb').onclick=function(){
-
-var n=$('ng').value.trim();
-
-if(!n)return;
-
-S.g.push({
-n:n,
-st:[]
-});
-
-$('ng').value='';
-
-save();
-rall();
-
-tos('Grupo añadido');
-};
-
-$('amb').onclick=function(){
-
-var n=$('nmd').value.trim();
-
-if(!n)return;
-
-S.subj.push(n);
-
-$('nmd').value='';
-
-save();
-rall();
-
-tos('Módulo añadido');
-};
-
-$('pe').onchange=function(){
-
-var v=num(this.value);
-
-S.pe=
-(v===null?
-50:
-Math.max(0,Math.min(100,v)));
-
-save();
-rall();
-};
-
-$('gate').onchange=function(){
-
-S.gate=this.checked;
-
-save();
-rall();
-};
-
-$('empn').onchange=function(){
-
-var v=num(this.value);
-
-S.empN=
-(v===null?
-10:
-Math.max(0,Math.min(10,v)));
-
-save();
-rall();
-};
-
-$('arb').onclick=function(){
-
-var t=$('rt').value;
-var l=$('rl').value.trim()||TN[t];
-var a=$('ra').value;
-var b=$('rb').value||a;
-
-if(!a){
-
-tos('Falta la fecha');
-
-return;
-}
-
-S.cal.push([t,a,b,l]);
-
-$('rl').value='';
-$('ra').value='';
-$('rb').value='';
-
-save();
-rall();
-
-tos('Añadido');
-};
-
-$('wp').onclick=function(){
-
-if(
-!confirm(
-'Se borra todo: alumnos, asistencia, anotaciones y notas. ¿Seguro?'
-)
-){
-return;
-}
-
-S={
-g:clone(DEFAULT_GROUPS),
-subj:S.subj,
-days:S.days,
-ent:[],
-att:{},
-cal:S.cal,
-mx:clone(MX),
-nt:{},
-rec:{},
-pe:S.pe,
-gate:S.gate,
-empN:S.empN,
-tt:clone(DEFAULT_TIMETABLE),
-tasks:[],
-evals:[],
-notifyLog:{}
-};
-
-save();
-rall();
-
-tos('Borrado');
-};
-
-load();
-
-for(var ti=0;ti<S.tt.length;ti++){
-
-if(!S.tt[ti].id){
-S.tt[ti].id='d'+ti;
-}
-}
-
-var n2=new Date();
-
-if(
-n2>=pd('2026-09-01') &&
-n2<=pd('2027-08-31')
-){
-
-cur=new Date(
-n2.getFullYear(),
-n2.getMonth(),
-1
-);
-}
-
-rall();
-checkAlerts();
+/*
+  Al volver a la ventana
+*/
 
 window.addEventListener(
-'focus',
-checkAlerts
+  'focus',
+  comprobarPendientes
 );
+
+
+/*
+  Al volver desde otra pestaña
+*/
 
 document.addEventListener(
-'visibilitychange',
-function(){
+  'visibilitychange',
+  function(){
 
-if(!document.hidden){
-checkAlerts();
-}
-}
+    if(!document.hidden){
+
+      comprobarPendientes();
+
+    }
+
+  }
 );
 
-</script>
-</body>
-</html>
+
+/*
+  Actualización periódica mientras
+  la aplicación está abierta.
+*/
+
+setInterval(
+  function(){
+
+    actualizarAlarma(false);
+
+  },
+  60000
+);
+
+
+/*
+  Chrome puede impedir sonido hasta
+  que el usuario haya tocado la página
+  por primera vez.
+
+  En la primera pulsación comprobamos
+  nuevamente los pendientes.
+*/
+
+document.addEventListener(
+  'pointerdown',
+  function primeraInteraccion(){
+
+    var lista =
+      asuntosPendientes();
+
+
+    if(lista.length){
+
+      sonarAlarma();
+
+    }
+
+
+    document.removeEventListener(
+      'pointerdown',
+      primeraInteraccion
+    );
+
+  },
+  {once:true}
+);
+
+
+/*
+  Si desde la app se añade, elimina
+  o completa una tarea, refrescar el
+  indicador visual.
+*/
+
+document.addEventListener(
+  'click',
+  function(){
+
+    setTimeout(
+      function(){
+
+        actualizarAlarma(false);
+
+      },
+      250
+    );
+
+  }
+);
+
+})();
