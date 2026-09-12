@@ -1301,6 +1301,831 @@ document.addEventListener(
 
 })();
 <script>
+ <script>
+/* =========================================================
+   UT TEÓRICA EN EL CALENDARIO
+   4 materias · 4 colores
+   ========================================================= */
+
+(function(){
+
+var UT_COLORS={
+  'Materias primas':'#7C3AED',
+  'Innovación':'#EA580C',
+  'Digitalización':'#0F766E',
+  'Presentación y venta al público':'#BE185D'
+};
+
+var UT_SHORT={
+  'Materias primas':'MP',
+  'Innovación':'IN',
+  'Digitalización':'DG',
+  'Presentación y venta al público':'PV'
+};
+
+var UT_NAMES=[
+  'Materias primas',
+  'Innovación',
+  'Digitalización',
+  'Presentación y venta al público'
+];
+
+
+/* =========================================================
+   ESTILO
+   ========================================================= */
+
+var st=document.createElement('style');
+
+st.textContent=`
+
+.cl{
+  aspect-ratio:auto;
+  min-height:78px;
+  padding:2px 1px;
+  justify-content:flex-start;
+}
+
+.cl .nu{
+  width:30px;
+  height:30px;
+  min-height:30px;
+  font-size:14px;
+}
+
+.utmini{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:2px;
+  width:100%;
+  padding:0 1px;
+  margin-top:1px;
+}
+
+.utbadge{
+  display:block;
+  color:#fff;
+  border-radius:4px;
+  padding:1px 2px;
+  font-size:7.5px;
+  line-height:1.25;
+  font-weight:750;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  text-align:center;
+}
+
+.utlegend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px 10px;
+  margin:10px 0 2px;
+  padding:8px 0;
+  border-top:1px solid var(--ru);
+  border-bottom:1px solid var(--ru);
+}
+
+.utlegend span{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:11px;
+  color:var(--so);
+}
+
+.utlegend i{
+  width:10px;
+  height:10px;
+  border-radius:3px;
+  display:inline-block;
+}
+
+.dayutcard{
+  margin-top:8px;
+}
+
+.dayutgrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+}
+
+.dayutitem{
+  border-radius:9px;
+  padding:9px;
+  color:#fff;
+  min-width:0;
+}
+
+.dayutitem b{
+  display:block;
+  font-size:12px;
+  margin-bottom:2px;
+}
+
+.dayutitem span{
+  font-size:14px;
+  font-weight:750;
+}
+
+.dayutitem small{
+  display:block;
+  font-size:10.5px;
+  opacity:.9;
+  margin-top:2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+@media(max-width:430px){
+
+  .cl{
+    min-height:72px;
+  }
+
+  .utbadge{
+    font-size:6.8px;
+    padding:1px;
+  }
+
+  .dayutgrid{
+    grid-template-columns:1fr 1fr;
+  }
+
+}
+
+`;
+
+document.head.appendChild(st);
+
+
+/* =========================================================
+   TOTAL DE SESIONES DE LAS UT
+   ========================================================= */
+
+function utpTotal(mx){
+
+  var n=0;
+
+  for(var i=0;i<mx.ut.length;i++){
+
+    n+=Number(
+      mx.ut[i][4] || 0
+    );
+
+  }
+
+  return n;
+}
+
+
+/* =========================================================
+   SABER QUÉ UT CORRESPONDE A UNA SESIÓN
+   ========================================================= */
+
+function utpByOrdinal(mx,n){
+
+  if(n<1){
+    n=1;
+  }
+
+  var total=
+    utpTotal(mx);
+
+
+  if(n>total){
+
+    return 'Cierre';
+
+  }
+
+
+  var acc=0;
+
+
+  for(var i=0;i<mx.ut.length;i++){
+
+    acc+=Number(
+      mx.ut[i][4] || 0
+    );
+
+
+    if(n<=acc){
+
+      return mx.ut[i][0];
+
+    }
+
+  }
+
+
+  return 'Cierre';
+}
+
+
+/* =========================================================
+   SESIONES TEÓRICAS TRANSCURRIDAS ANTES DE UNA FECHA
+   ========================================================= */
+
+function utpSessionsBefore(plan,ds){
+
+  var n=0;
+
+  var d=
+    pd(plan.start);
+
+
+  while(
+    iso(d)<ds
+  ){
+
+    var s=
+      iso(d);
+
+
+    if(
+      s>=plan.start &&
+      s<=plan.end &&
+      !schoolOff(s)
+    ){
+
+      n+=Number(
+        plan.schedule[
+          d.getDay()
+        ] || 0
+      );
+
+    }
+
+
+    d.setDate(
+      d.getDate()+1
+    );
+
+  }
+
+
+  return n;
+}
+
+
+/* =========================================================
+   UT TEÓRICA PARA UNA MATERIA Y FECHA
+   ========================================================= */
+
+function utpForDate(name,ds){
+
+  var plan=
+    PLANS[name];
+
+
+  var mx=
+    (
+      S.mx &&
+      S.mx[name]
+    ) ||
+    MX[name];
+
+
+  if(
+    !plan ||
+    !mx ||
+    !mx.ut ||
+    ds<plan.start ||
+    ds>plan.end
+  ){
+
+    return '';
+
+  }
+
+
+  var before=
+    utpSessionsBefore(
+      plan,
+      ds
+    );
+
+
+  var today=
+    (!schoolOff(ds))
+    ?
+    Number(
+      plan.schedule[
+        pd(ds).getDay()
+      ] || 0
+    )
+    :
+    0;
+
+
+  var total=
+    utpTotal(mx);
+
+
+  /*
+    Si ya han terminado todas las UT
+  */
+
+  if(
+    before>=total
+  ){
+
+    return 'Cierre';
+
+  }
+
+
+  /*
+    Si ese día hay clase de esa materia
+  */
+
+  if(today>0){
+
+    var first=
+      utpByOrdinal(
+        mx,
+        before+1
+      );
+
+
+    var last=
+      utpByOrdinal(
+        mx,
+        Math.min(
+          total,
+          before+today
+        )
+      );
+
+
+    /*
+      Si una jornada de dos horas
+      termina una UT y comienza otra,
+      veremos por ejemplo:
+
+      UT1→UT2
+    */
+
+    return first===last
+      ?
+      first
+      :
+      first+'→'+last;
+
+  }
+
+
+  /*
+    Si ese día no hay clase,
+    muestra la UT que corresponde
+    continuar.
+  */
+
+  return utpByOrdinal(
+    mx,
+    before+1
+  );
+}
+
+
+/* =========================================================
+   CREAR ETIQUETA
+   ========================================================= */
+
+function utpBadge(
+  name,
+  ds,
+  longText
+){
+
+  var u=
+    utpForDate(
+      name,
+      ds
+    );
+
+
+  if(!u){
+
+    return '';
+
+  }
+
+
+  var short=
+    UT_SHORT[name];
+
+
+  var color=
+    UT_COLORS[name];
+
+
+  /*
+    Versión grande:
+    cuando abrimos el día
+  */
+
+  if(longText){
+
+    return (
+      '<div class="dayutitem" '+
+      'style="background:'+color+'">'+
+
+        '<b>'+
+          short+
+          ' · '+
+          name+
+        '</b>'+
+
+        '<span>'+
+          u+
+        '</span>'+
+
+        '<small>'+
+          'programación teórica'+
+        '</small>'+
+
+      '</div>'
+    );
+
+  }
+
+
+  /*
+    Versión pequeñita:
+    calendario mensual
+  */
+
+  return (
+    '<span '+
+      'class="utbadge" '+
+      'title="'+
+        name+
+        ' · '+
+        u+
+      '" '+
+      'style="background:'+
+        color+
+      '">'+
+
+      short+
+      ' '+
+      u.replace(
+        'UT',
+        ''
+      )+
+
+    '</span>'
+  );
+}
+
+
+/* =========================================================
+   PINTAR UT EN EL CALENDARIO
+   ========================================================= */
+
+function utpPaintCalendar(){
+
+  var buttons=
+    document.querySelectorAll(
+      '#gd button[data-d]'
+    );
+
+
+  for(
+    var i=0;
+    i<buttons.length;
+    i++
+  ){
+
+    var b=
+      buttons[i];
+
+
+    var ds=
+      b.getAttribute(
+        'data-d'
+      );
+
+
+    /*
+      Evitar duplicados
+    */
+
+    var old=
+      b.querySelector(
+        '.utmini'
+      );
+
+
+    if(old){
+
+      old.remove();
+
+    }
+
+
+    var box=
+      document.createElement(
+        'span'
+      );
+
+
+    box.className=
+      'utmini';
+
+
+    var h='';
+
+
+    for(
+      var j=0;
+      j<UT_NAMES.length;
+      j++
+    ){
+
+      h+=utpBadge(
+        UT_NAMES[j],
+        ds,
+        false
+      );
+
+    }
+
+
+    box.innerHTML=h;
+
+
+    var dots=
+      b.querySelector(
+        '.dt'
+      );
+
+
+    if(dots){
+
+      b.insertBefore(
+        box,
+        dots
+      );
+
+    }else{
+
+      b.appendChild(
+        box
+      );
+
+    }
+
+  }
+
+
+  /* =====================================================
+     LEYENDA DE COLORES
+     ===================================================== */
+
+  var cal=
+    document.getElementById(
+      'v-cal'
+    );
+
+
+  if(
+    cal &&
+    !document.getElementById(
+      'utLegend'
+    )
+  ){
+
+    var leg=
+      document.createElement(
+        'div'
+      );
+
+
+    leg.id=
+      'utLegend';
+
+
+    leg.className=
+      'utlegend';
+
+
+    leg.innerHTML=
+      UT_NAMES.map(
+        function(n){
+
+          return (
+            '<span>'+
+              '<i style="background:'+
+                UT_COLORS[n]+
+              '"></i>'+
+              '<b>'+
+                UT_SHORT[n]+
+              '</b> '+
+              n+
+            '</span>'
+          );
+
+        }
+      ).join('');
+
+
+    var lg=
+      cal.querySelector(
+        '.lg'
+      );
+
+
+    if(lg){
+
+      cal.insertBefore(
+        leg,
+        lg
+      );
+
+    }else{
+
+      cal.appendChild(
+        leg
+      );
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   PANEL GRANDE CUANDO ABRES UN DÍA
+   ========================================================= */
+
+function utpPaintDay(){
+
+  var dateInput=
+    document.getElementById(
+      'dp'
+    );
+
+
+  var ds=
+    dateInput
+      ?
+      dateInput.value
+      :
+      '';
+
+
+  if(!ds){
+
+    return;
+
+  }
+
+
+  var panel=
+    document.getElementById(
+      'dayUTPanel'
+    );
+
+
+  /*
+    Crear el panel solamente
+    la primera vez.
+  */
+
+  if(!panel){
+
+    panel=
+      document.createElement(
+        'div'
+      );
+
+
+    panel.id=
+      'dayUTPanel';
+
+
+    panel.className=
+      'card dayutcard';
+
+
+    var meta=
+      document.getElementById(
+        'dtg'
+      );
+
+
+    if(
+      meta &&
+      meta.parentNode
+    ){
+
+      meta.parentNode.insertBefore(
+        panel,
+        meta.nextSibling
+      );
+
+    }
+
+  }
+
+
+  var h=
+    '<h3>'+
+      'UT teórica para esta fecha'+
+    '</h3>'+
+    '<div class="dayutgrid">';
+
+
+  for(
+    var i=0;
+    i<UT_NAMES.length;
+    i++
+  ){
+
+    h+=utpBadge(
+      UT_NAMES[i],
+      ds,
+      true
+    );
+
+  }
+
+
+  h+=
+    '</div>'+
+    '<p class="hi">'+
+      'Estas UT corresponden a la '+
+      'programación teórica. '+
+      'El seguimiento real continúa '+
+      'registrándose en el diario y '+
+      'en Ver desviaciones.'+
+    '</p>';
+
+
+  panel.innerHTML=h;
+
+}
+
+
+/* =========================================================
+   CONECTAR CON EL CALENDARIO ACTUAL
+   SIN MODIFICAR SUS FUNCIONES
+   ========================================================= */
+
+var oldRcal=
+  rcal;
+
+
+rcal=function(){
+
+  oldRcal();
+
+  utpPaintCalendar();
+
+};
+
+
+/* =========================================================
+   CONECTAR CON LA PANTALLA DÍA
+   ========================================================= */
+
+var oldRdia=
+  rdia;
+
+
+rdia=function(){
+
+  oldRdia();
+
+  utpPaintDay();
+
+};
+
+
+/* =========================================================
+   PINTAR AL CARGAR LA APLICACIÓN
+   ========================================================= */
+
+utpPaintCalendar();
+
+
+if(
+  typeof V!=='undefined' &&
+  V==='dia'
+){
+
+  utpPaintDay();
+
+}
+
+})();
+</script>  
 var K='cuaderno-v4',OLDK='cuaderno-v3';
 
 var CAL=[
