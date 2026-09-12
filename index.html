@@ -500,7 +500,806 @@ El módulo solo se supera con un 5 en cada RA
 </main>
 
 <div class="ts" id="ts"></div>
+/* =========================================================
+   ALARMA GENERAL DE PENDIENTES
+   Cuaderno de aula
+   ========================================================= */
 
+(function(){
+
+var alarmaCSS = document.createElement('style');
+
+alarmaCSS.textContent = `
+#globalPendingAlarm{
+  max-width:640px;
+  margin:10px auto;
+  padding:0 14px;
+}
+
+.pendingAlarmBox{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:#fff1f0;
+  border:1px solid #efb9b5;
+  border-left:5px solid #d5453f;
+  border-radius:12px;
+  padding:11px 12px;
+  box-shadow:0 4px 14px rgba(30,42,56,.10);
+}
+
+.pendingAlarmIcon{
+  font-size:24px;
+  line-height:1;
+  animation:campana 1.1s ease-in-out;
+}
+
+.pendingAlarmText{
+  flex:1;
+  min-width:0;
+  font-size:13px;
+  color:#5c6b7c;
+}
+
+.pendingAlarmText strong{
+  display:block;
+  color:#1e2a38;
+  font-size:14px;
+  margin-bottom:2px;
+}
+
+.pendingAlarmButton{
+  border:0;
+  background:#d5453f;
+  color:white;
+  border-radius:9px;
+  padding:8px 10px;
+  font-weight:650;
+  font-size:12px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+.pendingAlarmBadge{
+  display:inline-grid;
+  place-items:center;
+  min-width:18px;
+  height:18px;
+  padding:0 5px;
+  margin-left:3px;
+  border-radius:10px;
+  background:#d5453f;
+  color:white;
+  font-size:10px;
+  font-weight:800;
+}
+
+@keyframes campana{
+  0%,100%{transform:rotate(0deg)}
+  20%{transform:rotate(14deg)}
+  40%{transform:rotate(-14deg)}
+  60%{transform:rotate(10deg)}
+  80%{transform:rotate(-8deg)}
+}
+`;
+
+document.head.appendChild(alarmaCSS);
+
+
+/* Crear zona de alarma debajo de la cabecera */
+
+var alarmaHost = document.createElement('div');
+
+alarmaHost.id = 'globalPendingAlarm';
+alarmaHost.style.display = 'none';
+
+var main = document.querySelector('main');
+
+if(main){
+  main.parentNode.insertBefore(alarmaHost,main);
+}
+
+
+/* ---------------------------------------------------------
+   Obtener asuntos pendientes
+   --------------------------------------------------------- */
+
+function fechaHoy(){
+  var d = new Date();
+
+  return d.getFullYear() + '-' +
+         String(d.getMonth()+1).padStart(2,'0') + '-' +
+         String(d.getDate()).padStart(2,'0');
+}
+
+
+function sumarDias(fecha,n){
+
+  var p = fecha.split('-');
+
+  var d = new Date(
+    Number(p[0]),
+    Number(p[1])-1,
+    Number(p[2])
+  );
+
+  d.setDate(d.getDate()+n);
+
+  return d.getFullYear() + '-' +
+         String(d.getMonth()+1).padStart(2,'0') + '-' +
+         String(d.getDate()).padStart(2,'0');
+}
+
+
+function asuntosPendientes(){
+
+  var hoy = fechaHoy();
+
+  var dentro7 = sumarDias(hoy,7);
+
+  var lista = [];
+
+  /*
+    TAREAS
+    Se consideran urgentes:
+    - las vencidas
+    - las de hoy
+    - las de los próximos 7 días
+  */
+
+  if(window.S && Array.isArray(S.tasks)){
+
+    S.tasks.forEach(function(t){
+
+      if(t.done) return;
+
+      if(t.date <= dentro7){
+
+        lista.push({
+          tipo:'tarea',
+          fecha:t.date,
+          titulo:t.title || 'Tarea pendiente',
+          asignatura:t.subject || 'General',
+          vencida:t.date < hoy
+        });
+
+      }
+
+    });
+
+  }
+
+
+  /*
+    EVALUACIONES
+    Aviso desde 3 días antes del examen
+  */
+
+  if(window.S && Array.isArray(S.evals)){
+
+    S.evals.forEach(function(e){
+
+      if(e.done) return;
+
+      var fechaAviso = sumarDias(e.date,-3);
+
+      if(fechaAviso <= hoy && e.date >= hoy){
+
+        lista.push({
+          tipo:'examen',
+          fecha:e.date,
+          titulo:'Poner examen de ' + e.subject,
+          asignatura:e.subject,
+          vencida:false
+        });
+
+      }
+
+    });
+
+  }
+
+
+  lista.sort(function(a,b){
+
+    if(a.fecha < b.fecha) return -1;
+
+    if(a.fecha > b.fecha) return 1;
+
+    return 0;
+
+  });
+
+  return lista;
+}
+
+
+/* ---------------------------------------------------------
+   Sonido
+   --------------------------------------------------------- */
+
+var contextoAudio = null;
+
+
+function sonarAlarma(){
+
+  try{
+
+    var AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+    if(!AudioContext) return;
+
+
+    if(!contextoAudio){
+
+      contextoAudio = new AudioContext();
+
+    }
+
+
+    if(contextoAudio.state === 'suspended'){
+
+      contextoAudio.resume();
+
+    }
+
+
+    var ahora = contextoAudio.currentTime;
+
+
+    /*
+      Dos tonos cortos tipo campana
+    */
+
+    [0,0.20].forEach(function(retraso,i){
+
+      var osc =
+        contextoAudio.createOscillator();
+
+      var gain =
+        contextoAudio.createGain();
+
+
+      osc.type = 'sine';
+
+      osc.frequency.setValueAtTime(
+        i === 0 ? 740 : 880,
+        ahora + retraso
+      );
+
+
+      gain.gain.setValueAtTime(
+        0.0001,
+        ahora + retraso
+      );
+
+
+      gain.gain.exponentialRampToValueAtTime(
+        0.18,
+        ahora + retraso + 0.02
+      );
+
+
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        ahora + retraso + 0.17
+      );
+
+
+      osc.connect(gain);
+
+      gain.connect(
+        contextoAudio.destination
+      );
+
+
+      osc.start(
+        ahora + retraso
+      );
+
+
+      osc.stop(
+        ahora + retraso + 0.19
+      );
+
+    });
+
+  }
+  catch(error){
+
+    console.log(
+      'No se pudo reproducir la alarma',
+      error
+    );
+
+  }
+
+}
+
+
+/* No repetir continuamente el sonido */
+
+function sonarSiProcede(lista){
+
+  if(!lista.length) return;
+
+  try{
+
+    var ultima =
+      Number(
+        sessionStorage.getItem(
+          'ultimaAlarmaCuaderno'
+        ) || 0
+      );
+
+
+    var ahora = Date.now();
+
+
+    /*
+      Puede volver a sonar después de 30 minutos
+      si abandonas y vuelves a la aplicación.
+    */
+
+    if(
+      !ultima ||
+      ahora-ultima > 30*60*1000
+    ){
+
+      sonarAlarma();
+
+      sessionStorage.setItem(
+        'ultimaAlarmaCuaderno',
+        String(ahora)
+      );
+
+    }
+
+  }
+  catch(error){
+
+    sonarAlarma();
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   Número rojo en la pestaña PLAN
+   --------------------------------------------------------- */
+
+function actualizarBadge(numero){
+
+  var botonPlan =
+    document.querySelector(
+      'nav button[data-v="plan"]'
+    );
+
+  if(!botonPlan) return;
+
+
+  var anterior =
+    botonPlan.querySelector(
+      '.pendingAlarmBadge'
+    );
+
+
+  if(anterior){
+
+    anterior.remove();
+
+  }
+
+
+  if(numero > 0){
+
+    var badge =
+      document.createElement('span');
+
+
+    badge.className =
+      'pendingAlarmBadge';
+
+
+    badge.textContent =
+      numero > 9 ? '9+' : numero;
+
+
+    botonPlan.appendChild(
+      badge
+    );
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   Franja visual
+   --------------------------------------------------------- */
+
+function actualizarAlarma(reproducirSonido){
+
+  var lista =
+    asuntosPendientes();
+
+
+  actualizarBadge(
+    lista.length
+  );
+
+
+  if(!lista.length){
+
+    alarmaHost.style.display =
+      'none';
+
+    alarmaHost.innerHTML =
+      '';
+
+    return;
+
+  }
+
+
+  var vencidas =
+    lista.filter(function(x){
+
+      return x.vencida;
+
+    }).length;
+
+
+  var examenes =
+    lista.filter(function(x){
+
+      return x.tipo === 'examen';
+
+    }).length;
+
+
+  var proximas =
+    lista.length -
+    vencidas -
+    examenes;
+
+
+  var detalles = [];
+
+
+  if(vencidas){
+
+    detalles.push(
+      vencidas +
+      (vencidas === 1 ?
+      ' tarea vencida' :
+      ' tareas vencidas')
+    );
+
+  }
+
+
+  if(examenes){
+
+    detalles.push(
+      examenes +
+      (examenes === 1 ?
+      ' examen por preparar' :
+      ' exámenes por preparar')
+    );
+
+  }
+
+
+  if(proximas){
+
+    detalles.push(
+      proximas +
+      (proximas === 1 ?
+      ' tarea próxima' :
+      ' tareas próximas')
+    );
+
+  }
+
+
+  alarmaHost.style.display =
+    'block';
+
+
+  alarmaHost.innerHTML = `
+
+    <div class="pendingAlarmBox">
+
+      <div class="pendingAlarmIcon">
+        🔔
+      </div>
+
+      <div class="pendingAlarmText">
+
+        <strong>
+          Tienes ${lista.length}
+          ${lista.length===1 ?
+            'asunto pendiente' :
+            'asuntos pendientes'}.
+          Revisa la aplicación.
+        </strong>
+
+        ${detalles.join(' · ')}
+
+      </div>
+
+      <button
+        id="abrirPendientes"
+        class="pendingAlarmButton">
+
+        Ver pendientes
+
+      </button>
+
+    </div>
+
+  `;
+
+
+  var boton =
+    document.getElementById(
+      'abrirPendientes'
+    );
+
+
+  if(boton){
+
+    boton.onclick =
+      function(){
+
+        /*
+          Abrir directamente PLAN
+        */
+
+        if(
+          typeof setv ===
+          'function'
+        ){
+
+          planPane = 'week';
+
+          setv('plan');
+
+        }
+
+      };
+
+  }
+
+
+  if(reproducirSonido){
+
+    sonarSiProcede(
+      lista
+    );
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   Notificación del sistema
+   --------------------------------------------------------- */
+
+function notificacionGeneral(){
+
+  var lista =
+    asuntosPendientes();
+
+
+  if(!lista.length) return;
+
+
+  if(
+    !('Notification' in window)
+  ) return;
+
+
+  if(
+    Notification.permission !==
+    'granted'
+  ) return;
+
+
+  var hoy =
+    fechaHoy();
+
+
+  var clave =
+    'alarmaGeneral:' + hoy;
+
+
+  if(
+    window.S &&
+    S.notifyLog &&
+    S.notifyLog[clave]
+  ){
+
+    return;
+
+  }
+
+
+  try{
+
+    new Notification(
+      'Cuaderno de aula',
+      {
+        body:
+          'Tienes ' +
+          lista.length +
+          ' asunto' +
+          (lista.length===1 ? '' : 's') +
+          ' pendiente' +
+          (lista.length===1 ? '' : 's') +
+          '. Revisa la aplicación.',
+
+        tag:
+          'cuaderno-pendientes-' +
+          hoy
+      }
+    );
+
+
+    if(
+      window.S &&
+      S.notifyLog
+    ){
+
+      S.notifyLog[clave] =
+        hoy;
+
+
+      if(
+        typeof save ===
+        'function'
+      ){
+
+        save();
+
+      }
+
+    }
+
+  }
+  catch(error){}
+
+}
+
+
+/* ---------------------------------------------------------
+   Ejecutar alarma
+   --------------------------------------------------------- */
+
+function comprobarPendientes(){
+
+  actualizarAlarma(true);
+
+  notificacionGeneral();
+
+}
+
+
+/*
+  Al abrir la aplicación
+*/
+
+setTimeout(
+  comprobarPendientes,
+  600
+);
+
+
+/*
+  Al volver a la ventana
+*/
+
+window.addEventListener(
+  'focus',
+  comprobarPendientes
+);
+
+
+/*
+  Al volver desde otra pestaña
+*/
+
+document.addEventListener(
+  'visibilitychange',
+  function(){
+
+    if(!document.hidden){
+
+      comprobarPendientes();
+
+    }
+
+  }
+);
+
+
+/*
+  Actualización periódica mientras
+  la aplicación está abierta.
+*/
+
+setInterval(
+  function(){
+
+    actualizarAlarma(false);
+
+  },
+  60000
+);
+
+
+/*
+  Chrome puede impedir sonido hasta
+  que el usuario haya tocado la página
+  por primera vez.
+
+  En la primera pulsación comprobamos
+  nuevamente los pendientes.
+*/
+
+document.addEventListener(
+  'pointerdown',
+  function primeraInteraccion(){
+
+    var lista =
+      asuntosPendientes();
+
+
+    if(lista.length){
+
+      sonarAlarma();
+
+    }
+
+
+    document.removeEventListener(
+      'pointerdown',
+      primeraInteraccion
+    );
+
+  },
+  {once:true}
+);
+
+
+/*
+  Si desde la app se añade, elimina
+  o completa una tarea, refrescar el
+  indicador visual.
+*/
+
+document.addEventListener(
+  'click',
+  function(){
+
+    setTimeout(
+      function(){
+
+        actualizarAlarma(false);
+
+      },
+      250
+    );
+
+  }
+);
+
+})();
 <script>
 var K='cuaderno-v4',OLDK='cuaderno-v3';
 
