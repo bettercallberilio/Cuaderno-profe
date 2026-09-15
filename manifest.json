@@ -3,7 +3,7 @@
   "name": "Cuaderno de aula 26/27 · Cristina Aldavero",
   "short_name": "Cuaderno 26/27",
   "description": "Cuaderno docente 2026/27 para asistencia, diario, planificación por UT y evaluación.",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#fbfaf7",
@@ -12,28 +12,16 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "./cuaderno-icon-192.png",
+      "src": "./icon-192-1.png?v=5",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./cuaderno-icon-512.png",
+      "src": "./icon-512-3.png?v=5",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "./cuaderno-maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "./cuaderno-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ]
 }
