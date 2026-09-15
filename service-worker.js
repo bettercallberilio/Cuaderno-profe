@@ -1,14 +1,11 @@
-const CACHE_NAME = 'cuaderno-aula-26-27-v4';
+const CACHE_NAME = 'cuaderno-aula-26-27-v5';
 
 const APP_FILES = [
   './',
   './index.html',
   './manifest.json',
-  './cuaderno-icon-192.png',
-  './cuaderno-icon-512.png',
-  './cuaderno-maskable-192.png',
-  './cuaderno-maskable-512.png',
-  './apple-touch-icon.png',
+  './icon-192-1.png',
+  './icon-512-3.png',
   './favicon-32.png',
   './favicon-48.png'
 ];
@@ -33,12 +30,18 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: 'no-store' })
       .then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        if (response && response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        }
         return response;
       })
-      .catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html')))
+      .catch(() =>
+        caches.match(event.request).then(cached =>
+          cached || caches.match('./index.html')
+        )
+      )
   );
 });
