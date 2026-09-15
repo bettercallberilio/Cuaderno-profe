@@ -226,10 +226,17 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 .proglegend span{display:flex;align-items:center;gap:4px}.proglegend i{width:9px;height:9px;border-radius:3px}
 @media(max-width:430px){.progrow{grid-template-columns:68px 1fr auto;gap:5px}.progmonthgrid,.progmonthhead{gap:2px}.progcell{min-height:68px;padding:4px 2px}.progcelltag{font-size:7.5px;padding:2px}.utsummary{font-size:10.5px}}
 
+/* ===== Sincronización Supabase ===== */
+.syncbadge{float:right;border:1px solid var(--ru);background:#fff;border-radius:14px;padding:3px 8px;font-size:10.5px;font-weight:700;color:var(--so);cursor:pointer}
+.syncbadge.ok{background:#e7f5ed;border-color:#acd9c2;color:#21764f}.syncbadge.warn{background:#fff7e7;border-color:#ecd59f;color:#9a6810}.syncbadge.bad{background:#fdebea;border-color:#efc2c0;color:#b33833}
+.syncstatus{border-radius:9px;padding:9px 10px;margin:8px 0 10px;background:var(--pa);border:1px solid var(--gr);font-size:12.5px;color:var(--so)}
+.syncstatus.ok{background:#f4fbf7;border-color:#acd9c2;color:#21764f}.syncstatus.warn{background:#fff7e7;border-color:#ecd59f;color:#8b6112}.syncstatus.bad{background:#fff6f5;border-color:#efc2c0;color:#b33833}
+.syncchoice{margin-top:10px;padding:10px;border:1px solid #ecd59f;background:#fff7e7;border-radius:9px}.syncchoice b{display:block;margin-bottom:4px}.syncsmall{font-size:11.5px;color:var(--fa);line-height:1.45}
+
 </style>
 </head>
 <body>
-<header><div class="w"><h1>Cuaderno de aula</h1>
+<header><div class="w"><h1>Cuaderno de aula <span id="syncBadge" class="syncbadge">☁ Local</span></h1>
 <nav><button class="on" data-v="cal">Calendario</button><button data-v="dia">Día</button><button data-v="dia2">Diario</button><button data-v="prog">UT</button><button data-v="plan">Plan</button><button data-v="not">Notas</button><button data-v="aj">Ajustes</button></nav>
 </div></header>
 <div id="globalPending" class="pendingbar hide"></div>
@@ -369,7 +376,22 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 </section>
 
 <section id="v-aj" class="hide">
-<div class="card" style="margin-top:14px"><h3>Días que tienes clase</h3><p class="hi" style="margin:0 0 10px">Solo estos cuentan como jornada tuya.</p><div class="wd" id="wd"></div></div>
+<div class="card" id="syncCard" style="margin-top:14px"><h3>Sincronización móvil ↔ PC</h3>
+<p class="hi" style="margin:0 0 8px">Usa la misma cuenta en todos tus dispositivos. Los cambios se guardan localmente y, cuando hay Internet, se sincronizan con la nube.</p>
+<div id="syncStatus" class="syncstatus">☁ Datos guardados solo en este dispositivo.</div>
+<div id="syncLoginBox">
+<div class="ir"><input id="syncEmail" type="email" autocomplete="username" placeholder="Correo de acceso"></div>
+<div class="ir"><input id="syncPass" type="password" autocomplete="current-password" placeholder="Contraseña"></div>
+<button class="b p" id="syncLoginBtn">Entrar y sincronizar</button>
+</div>
+<div id="syncConnectedBox" class="hide">
+<p class="hi" id="syncUser" style="margin:0 0 8px"></p>
+<div id="syncChoice" class="syncchoice hide"><b>Hay datos distintos en este dispositivo y en la nube.</b><span class="syncsmall">Elige cuál debe convertirse en la copia principal. Antes de sustituir nada se guarda una copia de seguridad local.</span><div class="rw"><button class="b g p" id="syncUseCloud">Usar datos de la nube</button><button class="b g" id="syncUseDevice">Subir este dispositivo</button></div></div>
+<div class="rw"><button class="b g p" id="syncNow">Sincronizar ahora</button><button class="b g" id="syncLogout">Cerrar sesión</button></div>
+<p class="syncsmall">Después de la primera vinculación, la sincronización es automática. Si trabajas sin conexión, los cambios se enviarán cuando vuelva Internet.</p>
+</div>
+</div>
+<div class="card"><h3>Días que tienes clase</h3><p class="hi" style="margin:0 0 10px">Solo estos cuentan como jornada tuya.</p><div class="wd" id="wd"></div></div>
 <div class="card"><h3>Grupos y alumnos</h3><div id="glst"></div>
 <div class="ir" style="margin-top:12px"><input id="ng" placeholder="Nuevo grupo (ej. 1º Panadería)"><button class="b" id="agb">Añadir</button></div></div>
 <div class="card"><h3>Módulos</h3><div id="mlst"></div>
@@ -396,6 +418,13 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 <div class="ts" id="ts"></div>
 <script>
 var K='cuaderno-v4',OLDK='cuaderno-v3';
+var SB_URL='https://0jwhfayjtnkmiernzxxa.supabase.co';
+var SB_KEY='sb_publishable_XaEnvbMDy27GwJuFNSw5Fw_1aHHdwz6';
+var SYNC_AUTH_KEY='cuaderno-sb-session-v1';
+var SYNC_META_KEY='cuaderno-sync-meta-v1';
+var SYNC_BACKUP_PREFIX='cuaderno-backup-';
+var syncSession=null,syncMeta={user_id:null,version:0,updated_at:null,dirty:false},syncReady=false,syncDirty=false,syncBusy=false,syncPendingRemote=null,syncApplying=false,syncPushTimer=null,syncPollTimer=null;
+
 var CAL=[['inicio','2026-09-08','2026-09-08','Inicio Infantil y Primaria'],['inicio','2026-09-14','2026-09-14','Inicio ESO, Bach y FP'],['inicio','2026-09-21','2026-09-21','Inicio otras enseñanzas'],['inicio','2026-09-30','2026-10-01','Inicio régimen especial'],['festivo','2026-10-02','2026-10-02','San Saturio'],['libre','2026-10-05','2026-10-05','No lectivo'],['festivo','2026-10-12','2026-10-12','Fiesta Nacional'],['libre','2026-11-02','2026-11-02','No lectivo'],['libre','2026-11-30','2026-11-30','No lectivo'],['festivo','2026-12-07','2026-12-07','Constitución'],['festivo','2026-12-08','2026-12-08','Inmaculada'],['libre','2026-12-23','2027-01-08','Vacaciones de Navidad'],['festivo','2026-12-25','2026-12-25','Navidad'],['festivo','2027-01-01','2027-01-01','Año Nuevo'],['festivo','2027-01-06','2027-01-06','Reyes'],['libre','2027-02-04','2027-02-05','No lectivo'],['libre','2027-03-22','2027-04-02','Semana Santa'],['festivo','2027-03-25','2027-03-26','Jueves y Viernes Santo'],['festivo','2027-04-23','2027-04-23','Día de Castilla y León'],['festivo','2027-05-01','2027-05-01','Fiesta del Trabajo'],['fin','2027-05-21','2027-05-21','Fin 2º Bachillerato'],['fin','2027-05-28','2027-05-28','Fin FP y otras'],['fin','2027-06-17','2027-06-17','Fin ESO y 1º Bach'],['fin','2027-06-24','2027-06-24','Fin Infantil y Primaria']];
 var TY=[['contenido','Lo trabajado','#22405e'],['incidencia','Incidencia','#d5453f'],['tarea','Tarea','#b07a18'],['nota','Recordatorio','#6b7785']];
 var TN={inicio:'Inicio de curso',fin:'Fin de curso',festivo:'Festivo',libre:'No lectivo'};
@@ -591,7 +620,39 @@ function sh(s){var d=pd(s);return d.getDate()+' '+MO[d.getMonth()].slice(0,3)}
 function ymName(ym){var a=ym.split('-');return MO[+a[1]-1]+' '+a[0]}
 var TD=iso(new Date());
 
-function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){tos('No se ha podido guardar')}}
+function save(){
+try{localStorage.setItem(K,JSON.stringify(S))}catch(e){tos('No se ha podido guardar')}
+if(!syncApplying&&syncMeta&&syncMeta.user_id){syncMeta.dirty=true;syncDirty=true;saveSyncMeta();scheduleCloudPush()}
+}
+
+function loadSyncMeta(){try{var x=JSON.parse(localStorage.getItem(SYNC_META_KEY)||'null');if(x&&typeof x==='object')syncMeta=x}catch(e){}if(syncMeta.dirty)syncDirty=true}
+function saveSyncMeta(){try{localStorage.setItem(SYNC_META_KEY,JSON.stringify(syncMeta))}catch(e){}}
+function loadSyncSession(){try{var x=JSON.parse(localStorage.getItem(SYNC_AUTH_KEY)||'null');if(x&&x.access_token&&x.refresh_token)syncSession=x}catch(e){syncSession=null}}
+function saveSyncSession(){try{if(syncSession)localStorage.setItem(SYNC_AUTH_KEY,JSON.stringify(syncSession));else localStorage.removeItem(SYNC_AUTH_KEY)}catch(e){}}
+function syncSetBadge(txt,kind){var b=$('syncBadge');if(b){b.textContent=txt;b.className='syncbadge'+(kind?' '+kind:'')}}
+function syncSetStatus(txt,kind){var e=$('syncStatus');if(e){e.textContent=txt;e.className='syncstatus'+(kind?' '+kind:'')}}
+function syncBackup(label,data){try{localStorage.setItem(SYNC_BACKUP_PREFIX+label+'-'+Date.now(),JSON.stringify(data))}catch(e){}}
+function syncSessionExpiry(data){return Date.now()+Math.max(60,Number(data.expires_in||3600))*1000}
+async function syncAuthRequest(grant,body){var r=await fetch(SB_URL+'/auth/v1/token?grant_type='+grant,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});var d=await r.json().catch(function(){return {}});if(!r.ok)throw new Error(d.error_description||d.msg||d.error||'Error de acceso');return d}
+async function syncRefresh(){if(!syncSession||!syncSession.refresh_token)throw new Error('Sesión no disponible');var d=await syncAuthRequest('refresh_token',{refresh_token:syncSession.refresh_token});syncSession={access_token:d.access_token,refresh_token:d.refresh_token||syncSession.refresh_token,expires_at:syncSessionExpiry(d),user:d.user||syncSession.user};saveSyncSession();return syncSession}
+async function syncEnsureToken(){if(!syncSession)throw new Error('No has iniciado sesión');if(!syncSession.expires_at||syncSession.expires_at<Date.now()+60000)await syncRefresh();return syncSession.access_token}
+async function syncRest(path,opts,retry){opts=opts||{};var token=await syncEnsureToken();var h=opts.headers||{};h.apikey=SB_KEY;h.Authorization='Bearer '+token;if(opts.body&&!h['Content-Type'])h['Content-Type']='application/json';opts.headers=h;opts.cache='no-store';var r=await fetch(SB_URL+'/rest/v1/'+path,opts);if(r.status===401&&retry!==false){await syncRefresh();return syncRest(path,opts,false)}return r}
+async function syncFetchRemote(){var uid=syncSession&&syncSession.user&&syncSession.user.id;if(!uid)return null;var r=await syncRest('cuaderno_state?owner_id=eq.'+encodeURIComponent(uid)+'&select=id,owner_id,data,version,updated_at&limit=1',{method:'GET'});if(!r.ok)throw new Error('No se pudo leer la nube ('+r.status+')');var a=await r.json();return a&&a[0]?a[0]:null}
+async function syncCreateRemote(){var uid=syncSession.user.id;var r=await syncRest('cuaderno_state?on_conflict=owner_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=representation'},body:JSON.stringify([{owner_id:uid,data:S}])});if(!r.ok)throw new Error('No se pudo crear la copia en la nube ('+r.status+')');var a=await r.json();return a&&a[0]?a[0]:null}
+function syncApplyRemote(remote){if(!remote||!remote.data)return;syncBackup('antes-de-cargar-nube',S);syncApplying=true;S=remote.data;normalizeState();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}syncApplying=false;syncMeta={user_id:remote.owner_id,version:Number(remote.version||0),updated_at:remote.updated_at||null,dirty:false};syncDirty=false;saveSyncMeta();syncPendingRemote=null;syncReady=true;rall();renderSyncUI();syncSetBadge('☁ Sincronizado','ok');syncSetStatus('✓ Sincronizado con la nube.','ok')}
+async function syncForceDevice(){if(!syncSession||!syncPendingRemote)return;var remote=syncPendingRemote;syncBackup('copia-nube-antes-de-sustituir',remote.data);syncBusy=true;renderSyncUI();try{var r=await syncRest('cuaderno_state?owner_id=eq.'+encodeURIComponent(syncSession.user.id),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({data:S})});if(!r.ok)throw new Error('No se pudo subir este dispositivo');var a=await r.json(),row=a&&a[0]?a[0]:await syncFetchRemote();syncMeta={user_id:syncSession.user.id,version:Number(row&&row.version||0),updated_at:row&&row.updated_at||null,dirty:false};syncDirty=false;saveSyncMeta();syncPendingRemote=null;syncReady=true;syncSetBadge('☁ Sincronizado','ok');syncSetStatus('✓ Este dispositivo es ahora la copia principal.','ok')}catch(e){syncSetBadge('☁ Error','bad');syncSetStatus(e.message,'bad')}finally{syncBusy=false;renderSyncUI()}}
+async function syncPush(){if(!syncSession||!syncReady||syncBusy||syncApplying)return;if(!syncDirty&&!syncMeta.dirty)return;syncBusy=true;syncSetBadge('☁ Guardando…','warn');syncSetStatus('Guardando cambios en la nube…','warn');try{var remote=await syncFetchRemote();if(!remote){remote=await syncCreateRemote();syncMeta.version=Number(remote&&remote.version||1)}else if(Number(remote.version||0)>Number(syncMeta.version||0)){syncPendingRemote=remote;syncReady=false;syncSetBadge('☁ Revisar','warn');syncSetStatus('Hay cambios nuevos en otro dispositivo. Elige qué copia conservar.','warn');renderSyncUI();return}
+var r=await syncRest('cuaderno_state?owner_id=eq.'+encodeURIComponent(syncSession.user.id)+'&version=eq.'+encodeURIComponent(syncMeta.version||0),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({data:S})});if(!r.ok)throw new Error('No se pudo guardar en la nube ('+r.status+')');var a=await r.json();if(!a.length){syncPendingRemote=await syncFetchRemote();syncReady=false;syncSetBadge('☁ Revisar','warn');syncSetStatus('Otro dispositivo modificó los datos al mismo tiempo. Elige qué copia conservar.','warn');renderSyncUI();return}var row=a[0];syncMeta={user_id:syncSession.user.id,version:Number(row.version||0),updated_at:row.updated_at||null,dirty:false};syncDirty=false;saveSyncMeta();syncSetBadge('☁ Sincronizado','ok');syncSetStatus('✓ Sincronizado con la nube.','ok')}catch(e){syncSetBadge('☁ Pendiente','warn');syncSetStatus('Sin conexión o error de sincronización. Los cambios siguen guardados en este dispositivo.','warn');syncMeta.dirty=true;syncDirty=true;saveSyncMeta()}finally{syncBusy=false;renderSyncUI()}}
+function scheduleCloudPush(){if(!syncReady||!syncSession)return;clearTimeout(syncPushTimer);syncPushTimer=setTimeout(syncPush,900)}
+async function syncPull(){if(!syncSession||!syncReady||syncBusy||syncApplying)return;try{var remote=await syncFetchRemote();if(!remote)return;if(Number(remote.version||0)>Number(syncMeta.version||0)){if(syncDirty||syncMeta.dirty){syncPendingRemote=remote;syncReady=false;syncSetBadge('☁ Revisar','warn');syncSetStatus('Hay cambios en este dispositivo y también en otro. Elige qué copia conservar.','warn');renderSyncUI()}else syncApplyRemote(remote)}}catch(e){}}
+async function syncConnectAfterLogin(){if(!syncSession||!syncSession.user)return;syncSetBadge('☁ Conectando…','warn');syncSetStatus('Conectando con la nube…','warn');try{var remote=await syncFetchRemote();var uid=syncSession.user.id;if(!remote){var row=await syncCreateRemote();syncMeta={user_id:uid,version:Number(row&&row.version||1),updated_at:row&&row.updated_at||null,dirty:false};syncDirty=false;saveSyncMeta();syncReady=true;syncPendingRemote=null;syncSetBadge('☁ Sincronizado','ok');syncSetStatus('✓ Primera copia creada en la nube.','ok')}else if(syncMeta.user_id===uid){if(syncMeta.dirty&&Number(remote.version||0)>Number(syncMeta.version||0)){syncPendingRemote=remote;syncReady=false;syncSetBadge('☁ Revisar','warn');syncSetStatus('Hay cambios pendientes en este dispositivo y una versión más nueva en la nube.','warn')}else if(Number(remote.version||0)>Number(syncMeta.version||0)){syncApplyRemote(remote);return}else{syncReady=true;syncPendingRemote=null;syncMeta.version=Number(remote.version||syncMeta.version||0);syncMeta.updated_at=remote.updated_at||syncMeta.updated_at;saveSyncMeta();if(syncMeta.dirty){syncDirty=true;scheduleCloudPush()}else{syncSetBadge('☁ Sincronizado','ok');syncSetStatus('✓ Sincronizado con la nube.','ok')}}}else{syncPendingRemote=remote;syncReady=false;syncSetBadge('☁ Elegir copia','warn');syncSetStatus('Este dispositivo todavía no está vinculado. Elige si quieres usar la nube o subir los datos de este dispositivo.','warn')}}catch(e){syncReady=false;syncSetBadge('☁ Sin conexión','warn');syncSetStatus('No se pudo conectar. La app seguirá funcionando con los datos locales.','warn')}renderSyncUI();startSyncPolling()}
+async function syncLogin(){var email=($('syncEmail').value||'').trim(),pass=$('syncPass').value;if(!email||!pass){tos('Escribe correo y contraseña');return}$('syncLoginBtn').disabled=true;syncSetStatus('Iniciando sesión…','warn');try{var d=await syncAuthRequest('password',{email:email,password:pass});syncSession={access_token:d.access_token,refresh_token:d.refresh_token,expires_at:syncSessionExpiry(d),user:d.user};saveSyncSession();$('syncPass').value='';await syncConnectAfterLogin()}catch(e){syncSetStatus(e.message||'No se pudo iniciar sesión','bad');syncSetBadge('☁ Local','')}finally{$('syncLoginBtn').disabled=false;renderSyncUI()}}
+function syncLogout(){syncSession=null;syncReady=false;syncPendingRemote=null;saveSyncSession();clearInterval(syncPollTimer);syncSetBadge('☁ Local','');syncSetStatus('Sesión cerrada. Los datos siguen guardados en este dispositivo.','');renderSyncUI()}
+function startSyncPolling(){clearInterval(syncPollTimer);if(syncSession)syncPollTimer=setInterval(function(){if(navigator.onLine!==false){if(syncMeta.dirty)syncPush();else syncPull()}},7000)}
+function renderSyncUI(){var login=$('syncLoginBox'),con=$('syncConnectedBox'),choice=$('syncChoice'),usr=$('syncUser');if(!login||!con)return;if(syncSession&&syncSession.user){login.className='hide';con.className='';usr.textContent='Cuenta: '+(syncSession.user.email||'usuario')+(syncMeta.version?' · versión nube '+syncMeta.version:'');choice.className=syncPendingRemote?'syncchoice':'syncchoice hide';$('syncNow').disabled=!!syncBusy}else{login.className='';con.className='hide';choice.className='syncchoice hide'}}
+async function syncUseCloud(){if(!syncPendingRemote)return;syncApplyRemote(syncPendingRemote)}
+async function syncNow(){if(!syncSession){setv('aj');return}if(syncPendingRemote){renderSyncUI();tos('Elige primero qué copia conservar');return}if(syncMeta.dirty||syncDirty)await syncPush();else await syncPull();if(syncReady&&!syncPendingRemote){syncSetBadge('☁ Sincronizado','ok');syncSetStatus('✓ Sincronizado con la nube.','ok')}}
+
 function normalizeState(){
 var ds=['Materias primas','Innovación','Digitalización','Presentación y venta al público','Proyecto intermodular'];
 if(!Array.isArray(S.g))S.g=[];
@@ -1020,6 +1081,7 @@ $('segout').innerHTML=h}
 
 /* ===== Ajustes ===== */
 function raj(){
+renderSyncUI();
 $('wd').innerHTML=WD.map(function(d){return '<button data-w="'+d[0]+'" class="'+(S.days.indexOf(d[0])>=0?'on':'')+'">'+d[1]+'</button>'}).join('');
 var bs=$('wd').querySelectorAll('button');for(var i=0;i<bs.length;i++)bs[i].onclick=function(){var w=+this.getAttribute('data-w'),x=S.days.indexOf(w);if(x>=0)S.days.splice(x,1);else S.days.push(w);save();raj();rcal()};
 $('glst').innerHTML=S.g.map(function(g,gi){return '<div class="ir" style="margin-top:14px"><input value="'+esc(g.n)+'" data-gn="'+gi+'"><button class="x" data-gd="'+gi+'">&times;</button></div>'+
@@ -1105,7 +1167,16 @@ S.cal.push([t,a,b,l]);$('rl').value='';$('ra').value='';$('rb').value='';save();
 $('wp').onclick=function(){if(!confirm('Se borra todo: alumnos, asistencia, anotaciones y notas. ¿Seguro?'))return;
 S={g:clone(DEFAULT_GROUPS),subj:S.subj,days:S.days,ent:[],att:{},cal:S.cal,mx:clone(MX),nt:{},rec:{},pe:S.pe,gate:S.gate,empN:S.empN,tt:clone(DEFAULT_TIMETABLE),tasks:[],evals:[],notifyLog:{}};save();rall();tos('Borrado')};
 
-load();for(var ti=0;ti<S.tt.length;ti++)if(!S.tt[ti].id)S.tt[ti].id='d'+ti;var n2=new Date();if(n2>=pd('2026-09-01')&&n2<=pd('2027-08-31'))cur=new Date(n2.getFullYear(),n2.getMonth(),1);rall();checkAlerts();window.addEventListener('focus',checkAlerts);document.addEventListener('visibilitychange',function(){if(!document.hidden)checkAlerts()});
+$('syncLoginBtn').onclick=syncLogin;
+$('syncUseCloud').onclick=syncUseCloud;
+$('syncUseDevice').onclick=syncForceDevice;
+$('syncNow').onclick=syncNow;
+$('syncLogout').onclick=syncLogout;
+$('syncBadge').onclick=function(){setv('aj');setTimeout(function(){var e=$('syncCard');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},80)};
+window.addEventListener('online',function(){if(syncSession){if(syncMeta.dirty)syncPush();else syncPull()}});
+loadSyncMeta();loadSyncSession();
+
+load();for(var ti=0;ti<S.tt.length;ti++)if(!S.tt[ti].id)S.tt[ti].id='d'+ti;var n2=new Date();if(n2>=pd('2026-09-01')&&n2<=pd('2027-08-31'))cur=new Date(n2.getFullYear(),n2.getMonth(),1);rall();checkAlerts();renderSyncUI();if(syncSession)syncConnectAfterLogin();window.addEventListener('focus',function(){checkAlerts();if(syncSession&&syncReady)syncPull()});document.addEventListener('visibilitychange',function(){if(!document.hidden)checkAlerts()});
 document.addEventListener('pointerdown',function unlockPendingAudio(){var items=attentionItems(iso(new Date()));if(items.length)maybeSoundPending(items,true);document.removeEventListener('pointerdown',unlockPendingAudio)},{once:true});
 
 
