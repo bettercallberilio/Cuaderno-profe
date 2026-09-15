@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cuaderno-aula-26-27-v5';
+const CACHE_NAME = 'cuaderno-aula-26-27-v6';
 
 const APP_FILES = [
   './',
@@ -28,6 +28,12 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+
+  // No interceptamos Supabase ni ninguna petición externa.
+  // Así nunca se guardan respuestas autenticadas en la caché de la PWA.
+  if (url.origin !== self.location.origin) return;
 
   event.respondWith(
     fetch(event.request, { cache: 'no-store' })
