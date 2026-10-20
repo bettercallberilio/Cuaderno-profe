@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cuaderno-aula-26-27-v6';
+const CACHE_NAME = 'cuaderno-aula-26-27-v7';
 
 const APP_FILES = [
   './',
@@ -20,7 +20,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
-      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      keys.filter(key => key.startsWith('cuaderno-aula-26-27-') && key !== CACHE_NAME).map(key => caches.delete(key))
     ))
   );
   self.clients.claim();
