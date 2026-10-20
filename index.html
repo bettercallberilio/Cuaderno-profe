@@ -925,7 +925,7 @@ Object.keys(days).forEach(function(d){var v=days[d];consider(mx.ut.findIndex(fun
 if(group&&S.tt.some(function(slot){return slot.g===group.n&&slot.s===name})){
 var p=planOf(mi),cursor=p&&ds>p.end?p.end:ds,planned='';
 while(p&&cursor>=p.start&&!planned){planned=theoreticalUT(name,cursor);if(!planned)cursor=addDays(cursor,-1)}
-consider(mx.ut.findIndex(function(x){return x[0]===planned}),ds)
+consider(planned==='FIN'?mx.ut.length-1:mx.ut.findIndex(function(x){return x[0]===planned}),ds)
 }
 /* Punto de partida confirmado por Cristina; no modifica anotaciones anteriores. */
 if(group&&/^1[º.º ]/.test(group.n)&&name==='Materias primas'&&ds>='2026-10-21')consider(mx.ut.findIndex(function(x){return x[0]==='UT2'}),'2026-10-21');
