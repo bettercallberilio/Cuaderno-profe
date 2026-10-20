@@ -244,7 +244,15 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 .su b small{display:block;font-size:10px;font-weight:400;max-width:75px}
 #classSession{max-width:100%;font-size:14px}#attendanceHours input{max-width:100px;margin-left:8px}
 
+
+#v-dia2 select,#v-aj select{max-width:100%;padding:8px;border:1px solid var(--ru);border-radius:7px}
+#reportReview details{padding:10px 0;border-bottom:1px solid var(--ru)}
+#reportReview summary{cursor:pointer;font-size:13px}
+#v-aj .lb input{display:block;width:100%;padding:8px;border:1px solid var(--ru);border-radius:7px}
+#reportReview label{display:block}#reportReview textarea{margin-top:5px}
 </style>
+<script defer src="./vendor/jszip.min.js"></script>
+<script defer src="./reports.js"></script>
 </head>
 <body>
 <header><div class="w"><h1>Cuaderno de aula <span id="syncBadge" class="syncbadge">☁ Local</span></h1>
@@ -300,10 +308,25 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 <textarea id="tx" placeholder="Dicta o escribe lo trabajado, incidencias, tareas..."></textarea>
 <div class="rw"><button class="b g" id="mic">Dictar</button><button class="b g p" id="sv">Guardar</button></div>
 <p class="hi" id="mh"></p></div>
+<div class="card"><h3>Acta diaria</h3><p class="hi">Fecha y grupo seleccionados, con todas sus materias, actividades y listas por clase.</p><button class="b p" id="downloadDaily">Descargar acta diaria PDF</button></div>
 <div id="dent"></div>
 </section>
 
 <section id="v-dia2" class="hide">
+<div class="card" style="margin-top:16px"><h3>Registro trimestral</h3>
+<div class="ir"><label>Grupo <select id="reportGroup"></select></label></div>
+<div class="ir"><label>Materias <select id="reportSubject"></select></label></div>
+<div class="ir"><label>Trimestre o evaluación <select id="reportTerm"><option value="1">Primera</option><option value="2">Segunda</option><option value="3">Tercera</option></select></label></div>
+<p class="hi">Las fechas parten de las evaluaciones de cada curso. Puedes ajustarlas para el documento de calidad.</p>
+<div class="ir"><label>Desde <input type="date" id="reportFrom"></label><label>Hasta <input type="date" id="reportTo"></label></div>
+<button class="b p" id="downloadQuarter">Descargar trimestre Excel</button>
+<p class="hi">Incluye el modelo de contenidos impartidos, el detalle completo de actividades y las listas de asistencia por clase. El historial anterior queda identificado por separado.</p></div>
+<div class="card"><h3>Seguimiento mensual de la programación</h3>
+<div class="ir"><label>Fecha de corte <input type="date" id="reportCutoff"></label></div>
+<div class="ir"><label>Materias <select id="trackingSubject"></select></label></div>
+<p class="hi">Informe acumulado desde el inicio del curso hasta la fecha indicada. Abre cada materia para registrar observaciones y medidas correctoras.</p>
+<div id="reportReview"></div><button class="b p" id="downloadTracking">Descargar seguimiento Excel</button>
+<p class="hi" role="status" id="reportMessage"></p></div>
 <div class="rw" style="margin:16px 0 8px"><button class="b g" id="cpd">Copiar diario</button><button class="b g" id="cpt">Copiar asistencia</button></div>
 <p class="hi" id="cst">Se pega en Excel con una columna por dato.</p>
 <div class="card"><h3>Resumen de asistencia</h3><div class="ch" id="sg"></div><div class="ch" id="attendanceSubjects"></div><p class="hi" id="attendanceScope"></p><div id="slst"></div></div>
@@ -423,6 +446,15 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 <div class="ir"><input type="date" id="ra"><input type="date" id="rb"></div>
 <button class="b" id="arb">Añadir fecha</button></div>
 
+<div class="card"><h3>Datos de los documentos</h3>
+<label class="lb">Centro <input id="report-centre"></label>
+<label class="lb">Docente <input id="report-teacher"></label>
+<label class="lb">Departamento <input id="report-department"></label>
+<label class="lb">Ciclo <input id="report-cycle"></label>
+<label class="lb">Curso escolar <input id="report-course"></label></div>
+<div class="card"><h3>Previsión de periodos de centro por UT</h3>
+<p class="hi">Se distribuyen secuencialmente sobre el horario y el calendario. En PVPP no se equiparan las 66 horas curriculares a clases en el centro: introduce su reparto de centro cuando esté confirmado. Los periodos sin ubicación se muestran en el seguimiento.</p>
+<select id="reportPlanSubject"></select><div id="reportPlanFields"></div></div>
 <div class="card"><h3>Copia de seguridad</h3><p class="hi" style="margin:0 0 10px">Copia el texto y guárdalo en un correo. Para restaurar, pégalo aquí.</p>
 <div class="rw"><button class="b g" id="cpb">Copiar mis datos</button><button class="b g" id="rsb">Restaurar</button></div>
 <div class="rw"><button class="b g" id="recoveryDownload">Descargar copia de recuperación</button></div>
@@ -678,7 +710,7 @@ function secondYear(gi){return /^2[º°o]?\s/.test(groupName(gi))}
 function inPlacement(gi,ds){return secondYear(gi)&&ds>='2027-03-04'&&ds<='2027-06-16'}
 function classSlots(ds,gi,mi){
 var list=[],group=S.g[gi],subject=S.subj[mi];if(!group||!subject)return list;
-var p=planOf(mi),allowed=inf(ds).le&&!inPlacement(gi,ds)&&(!p||(ds>=p.start&&ds<=p.end));
+var p=planOf(mi),end=subject==='Presentación y venta al público'?((S.evals.find(function(e){return e.id==='school-second-2'})||{}).date||'2027-03-02'):(p?p.end:'2027-06-17'),allowed=inf(ds).le&&!inPlacement(gi,ds)&&(!p||(ds>=p.start&&ds<=end));
 if(allowed)S.tt.forEach(function(slot,i){if(+slot.d!==pd(ds).getDay()||slot.g!==group.n||slot.s!==subject)return;
 var id=slot.id===undefined?'d'+i:slot.id,key=classKey(ds,gi,id,mi),saved=S.classAtt[key];
 list.push(saved||{key:key,d:ds,g:gi,m:mi,subject:subject,slotId:id,start:slot.a,end:slot.b,units:1,marks:{}})
