@@ -257,7 +257,7 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 <body>
 <header><div class="w"><h1>Cuaderno de aula <span id="syncBadge" class="syncbadge">☁ Local</span></h1>
 <nav><button class="on" data-v="cal">Calendario</button><button data-v="dia">Día</button><button data-v="dia2">Diario</button><button data-v="prog">UT</button><button data-v="not">Notas</button><button data-v="aj">Ajustes</button></nav>
-</div></header>
+<div class="hi" id="appVersion" style="padding:4px 0 8px">Versión 10 · cursos y UT corregidos <button type="button" class="b" id="refreshApp">Actualizar app</button></div></div></header>
 <div id="globalPending" class="pendingbar hide"></div>
 <main class="w">
 <p id="storageStatus" class="hi" role="status" aria-live="polite"></p>
@@ -959,13 +959,13 @@ else $('sesbox').className='hide'
 /* Selector de módulos de la pestaña Día.
    Usa índices reales de S.subj y evita que datos antiguos/duplicados bloqueen los botones. */
 function applyConfirmedCourseSubjects(){
-if(S.courseSubjectsRevision==='two-subjects-per-course-v1')return true;
+if(S.courseSubjectsRevision==='two-subjects-per-course-v2')return true;
 var before=clone(S);try{localStorage.setItem('cuaderno-antes-corregir-cursos-'+Date.now(),JSON.stringify(S))}catch(e){return false}
 var second=S.g.find(function(g){return /^2/.test(g.n)});
 if(second)S.tt.forEach(function(slot){if(slot.s==='Digitalización'&&/^1/.test(slot.g))slot.g=second.n});
 if(!S.confirmedUTProgress)S.confirmedUTProgress={};
 S.g.forEach(function(g,gi){groupSubjectIndices(gi).forEach(function(mi){var name=S.subj[mi];S.confirmedUTProgress[JSON.stringify([g.n,name])]={code:name==='Materias primas'?'UT2':'UT1',at:Date.now()}})});
-S.courseSubjectsRevision='two-subjects-per-course-v1';
+S.courseSubjectsRevision='two-subjects-per-course-v2';
 if(!save()){S=before;return false}return true
 }
 function groupSubjectIndices(gi){
@@ -1349,6 +1349,8 @@ function setv(v){V=v;var active=(v==='seg'||v==='hor')?'cal':v,ns=document.query
 function rall(){applyConfirmedCourseSubjects();autoRecoverClassAttendance();if(V==='cal')rcal();if(V==='seg')rseg();if(V==='hor')rhor();if(V==='dia')rdia();if(V==='dia2')rdia2();if(V==='prog')rprog();if(V==='plan')rplan();if(V==='not')rnot();if(V==='aj')raj()}
 
 /* ===== eventos ===== */
+$('refreshApp').onclick=async function(){if($('tx').value.trim()){tos('Guarda primero la anotación que estás escribiendo');return}this.disabled=true;this.textContent='Actualizando…';try{if('serviceWorker' in navigator){var regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(function(r){return r.update()}))}var url=new URL(location.href);url.searchParams.set('version','10');url.searchParams.set('actualizar',String(Date.now()));location.replace(url.href)}catch(e){this.disabled=false;this.textContent='Actualizar app';tos('No se ha podido actualizar. Comprueba la conexión')}};
+
 var ns=document.querySelectorAll('nav button');for(var i=0;i<ns.length;i++)ns[i].onclick=function(){setv(this.getAttribute('data-v'))};
 $('calendarYear').onchange=function(){sel.calendarYear=Number(this.value);rcal()};
 $('pm').onclick=function(){cur.setMonth(cur.getMonth()-1);rcal()};$('nm').onclick=function(){cur.setMonth(cur.getMonth()+1);rcal()};
