@@ -411,6 +411,8 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 
 <div class="card"><h3>Copia de seguridad</h3><p class="hi" style="margin:0 0 10px">Copia el texto y guárdalo en un correo. Para restaurar, pégalo aquí.</p>
 <div class="rw"><button class="b g" id="cpb">Copiar mis datos</button><button class="b g" id="rsb">Restaurar</button></div>
+<div class="rw"><button class="b g" id="recoveryDownload">Descargar copia de recuperación</button></div>
+<p class="hi">Descarga los datos actuales y las copias locales conservadas para revisar registros que faltan. No restaura ni sustituye datos. El archivo contiene información del alumnado.</p>
 <textarea id="bk" class="hide" placeholder="Pega aquí la copia y pulsa Restaurar otra vez"></textarea>
 <button class="b d" id="wp" style="margin-top:10px">Borrar todo</button></div>
 </section>
@@ -1167,6 +1169,27 @@ var MN={P:'Presente',R:'Retraso',F:'Falta',J:'Justificada'};o+='\nDIA A DIA\nFec
 function cp(t,m){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){tos(m)},function(){pop(t)})}else pop(t)}
 function pop(t){var a=$('bk');a.className='';a.value=t;a.focus();a.select();tos('Copia el texto a mano')}
 $('cpd').onclick=function(){cp(bdiary(),'Diario copiado')};$('cpt').onclick=function(){cp(btable(),'Asistencia copiada')};$('cpn').onclick=function(){var t=tablaN();if(!t){tos('Nada que copiar');return}cp(t,'Notas copiadas')};
+function recoverySnapshot(){
+var report={format:'cuaderno-recuperacion-v1',exportedAt:new Date().toISOString(),current:S,copies:[],readErrors:[]};
+try{
+for(var i=0;i<localStorage.length;i++){
+var key=localStorage.key(i);
+if(key!==K&&key!==OLDK&&key.indexOf(SYNC_BACKUP_PREFIX)!==0)continue;
+try{var raw=localStorage.getItem(key);if(raw===null)continue;var data;try{data=JSON.parse(raw)}catch(e){data=raw}
+report.copies.push({key:key,data:data})
+}catch(e){report.readErrors.push(key)}
+}
+}catch(e){report.readErrors.push('No se pudo leer el almacenamiento local')}
+return report
+}
+function downloadRecovery(){
+try{
+var report=recoverySnapshot(),blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+a.href=url;a.download='Cuaderno_recuperacion_'+iso(new Date())+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},60000);
+tos('Copia de recuperación preparada. Revisa Descargas.')
+}catch(e){tos('No se pudo descargar. Conserva la app sin borrar datos.')}
+}
+$('recoveryDownload').onclick=downloadRecovery;
 $('cpb').onclick=function(){cp(JSON.stringify(S),'Copia hecha. Pégala en un correo')};
 $('rsb').onclick=function(){var a=$('bk');if(a.className==='hide'){a.className='';tos('Pega la copia y pulsa Restaurar otra vez');return}
 try{var d=JSON.parse(a.value);if(!d.g)throw 0;S=d;normalizeState();save();a.className='hide';a.value='';rall();tos('Restaurado')}catch(e){tos('Ese texto no es una copia válida')}};
