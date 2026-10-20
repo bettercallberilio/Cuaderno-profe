@@ -1,6 +1,9 @@
-const CACHE_NAME = 'cuaderno-aula-26-27-v7';
+const CACHE_NAME = 'cuaderno-aula-26-27-v8';
 
 const APP_FILES = [
+  './reports.js',
+  './export-models.json',
+  './vendor/jszip.min.js',
   './',
   './index.html',
   './manifest.json',
