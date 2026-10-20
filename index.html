@@ -720,12 +720,14 @@ Object.keys(S.classAtt).forEach(function(key){var r=S.classAtt[key];if(r.d===ds&
 return list.sort(function(a,b){return a.start.localeCompare(b.start)||a.key.localeCompare(b.key)})
 }
 function selectedClass(){var list=classSlots(iso(day),sel.ag,sel.m);for(var i=0;i<list.length;i++)if(list[i].key===sel.classKey)return list[i];return null}
+function classHasStarted(r){var now=new Date(),today=iso(now);return r.d<today||(r.d===today&&String(r.start||'23:59')<=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'))}
 function writeClassMark(index,mark,all){
 var r=selectedClass();if(!r){tos('Selecciona la clase antes de pasar lista');return false}
+if(!classHasStarted(r)){tos('La clase todavía no ha empezado. La asistencia queda sin marcar.');return false}
 var old=S.classAtt[r.key],next=clone(old||r),g=S.g[r.g];
 if(all){g.st.forEach(function(n,i){if(!next.marks[i])next.marks[i]='P'})}
 else if(next.marks[index]===mark)delete next.marks[index];else next.marks[index]=mark;
-next.savedAt=new Date().toISOString();S.classAtt[r.key]=next;
+delete next.recoveryMethod;next.savedAt=new Date().toISOString();S.classAtt[r.key]=next;
 if(!save()){if(old)S.classAtt[r.key]=old;else delete S.classAtt[r.key];ratt();return false}
 ratt();tos('Asistencia guardada: '+sh(r.d)+' · '+r.start+' · '+r.subject);return true
 }
@@ -742,11 +744,22 @@ return '<details class="noteinfo"><summary>Registro anterior conservado · pendi
 }
 function attendanceTotal(mi){var name=S.subj[mi],v=S.attendanceHours&&S.attendanceHours[name];return v===undefined?(PLANS[name]?Number(PLANS[name].target):null):(Number(v)>0?Number(v):null)}
 /* Recuperar listas antiguas solo cuando el horario permite identificar una única clase. */
+function repairPrematureAttendance(){
+if(S.attendanceHistoryCutoff)return true;
+var before=clone(S),cutoff=iso(new Date());
+try{localStorage.setItem('cuaderno-antes-corregir-asistencia-anticipada-'+Date.now(),JSON.stringify(S))}catch(e){return false}
+S.attendanceHistoryCutoff=cutoff;S.archivedPrematureDailyAttendance=S.archivedPrematureDailyAttendance||{};
+Object.keys(S.att||{}).forEach(function(k){if(k.split('|')[0]>=cutoff){S.archivedPrematureDailyAttendance[k]=S.att[k];delete S.att[k]}});
+S.archivedPrematureClassAttendance=S.archivedPrematureClassAttendance||{};
+Object.keys(S.classAtt||{}).forEach(function(k){var c=S.classAtt[k];if(c.d>=cutoff&&c.recoveryMethod){S.archivedPrematureClassAttendance[k]=c;delete S.classAtt[k]}});
+if(!save()){S=before;return false}return true
+}
 function autoRecoverClassAttendance(){
+if(!repairPrematureAttendance())return 0;
 if(!S.att||!S.classAtt||!Array.isArray(S.tt))return 0;
 var changes=[],today=iso(new Date());
 Object.keys(S.att).forEach(function(key){var parts=key.split('|'),ds=parts[0],gi=Number(parts[1]),marks=S.att[key];
-if(parts.length!==2||!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!S.g[gi]||ds>today||!marks)return;
+if(parts.length!==2||!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!S.g[gi]||ds>=S.attendanceHistoryCutoff||ds>=today||!marks)return;
 
 var slots=[];S.subj.forEach(function(name,mi){classSlots(ds,gi,mi).forEach(function(c){if(!slots.some(function(x){return x.key===c.key}))slots.push(c)})});
 /* Criterio confirmado por la docente: la lista antigua se aplica a todas las clases del día. */
@@ -917,25 +930,19 @@ if(gi>=0)sel.g=sel.ag=gi;if(mi>=0)sel.m=mi
 function selectDayGroup(gi){sel.g=sel.ag=gi;sel.classKey=null;ensureDaySubject();rememberDayContext();rdia()}
 function hasAcademicHistory(){return S.ent.length>0||Object.keys(S.att).length>0||Object.keys(S.nt).length>0||Object.keys(S.rec).length>0||Object.keys(S.classAtt||{}).length>0}
 function rememberedDayUT(gi,mi,ds){
-var mx=mxOf(mi);if(!mx)return 0;var highest=0,name=S.subj[mi],group=S.g[gi];
-function consider(u,d){if(d>ds||!Number.isInteger(u)||u<0||!mx.ut[u])return;highest=Math.max(highest,u)}
-S.ent.forEach(function(e){if(e.t===0&&e.g===gi&&e.m===mi)consider(e.u,e.d)});
-var memory=S.dayUTMemory||{},key=JSON.stringify([group&&group.n,name]),days=memory[key]||{};
-Object.keys(days).forEach(function(d){var v=days[d];consider(mx.ut.findIndex(function(x){return x[0]===v.code}),d)});
-/* Avance automático según programación, solo en el grupo que imparte la materia. */
-if(group&&S.tt.some(function(slot){return slot.g===group.n&&slot.s===name})){
-var p=planOf(mi),cursor=p&&ds>p.end?p.end:ds,planned='';
-while(p&&cursor>=p.start&&!planned){planned=theoreticalUT(name,cursor);if(!planned)cursor=addDays(cursor,-1)}
-consider(planned==='FIN'?mx.ut.length-1:mx.ut.findIndex(function(x){return x[0]===planned}),ds)
-}
-/* Punto de partida confirmado por Cristina; no modifica anotaciones anteriores. */
-if(group&&/^1[º.º ]/.test(group.n)&&name==='Materias primas'&&ds>='2026-10-21')consider(mx.ut.findIndex(function(x){return x[0]==='UT2'}),'2026-10-21');
-return highest
+var mx=mxOf(mi),g=S.g[gi],name=S.subj[mi];if(!mx||!g)return 0;
+var base=name==='Materias primas'&&/^1/.test(g.n)?1:0;
+var key=JSON.stringify([g.n,name]),v=S.confirmedUTProgress&&S.confirmedUTProgress[key];
+var stored=v?mx.ut.findIndex(function(u){return u[0]===v.code}):-1;
+return Math.min(mx.ut.length-1,Math.max(base,stored))
 }
 function rememberDayUT(){
 var mx=mxOf(sel.m);if(!mx||!mx.ut[sel.du]||!S.g[sel.g])return;
-if(!S.dayUTMemory)S.dayUTMemory={};var key=JSON.stringify([S.g[sel.g].n,S.subj[sel.m]]);
-if(!S.dayUTMemory[key])S.dayUTMemory[key]={};S.dayUTMemory[key][iso(day)]={code:mx.ut[sel.du][0],at:Date.now()};save()
+var floor=rememberedDayUT(sel.g,sel.m,iso(day));if(sel.du<floor){sel.du=floor;return}
+var before=clone(S.confirmedUTProgress||{});if(!S.confirmedUTProgress)S.confirmedUTProgress={};
+var key=JSON.stringify([S.g[sel.g].n,S.subj[sel.m]]);
+S.confirmedUTProgress[key]={code:mx.ut[sel.du][0],at:Date.now()};
+if(!save()){S.confirmedUTProgress=before;sel.du=floor}
 }
 function rdaymeta(reset){
 var mx=mxOf(sel.m),isContent=sel.t===0;
@@ -943,7 +950,7 @@ if(mx&&isContent){
 $('utbox').className='';var floor=rememberedDayUT(sel.g,sel.m,iso(day));if(reset||!Number.isInteger(sel.du)||sel.du<floor||sel.du>=mx.ut.length)sel.du=floor;
 chips($('cut'),mx.ut.map(function(u){return u[0]+' · '+u[1]}),'du',function(){if(sel.du<floor){sel.du=floor;tos('El avance de esta materia no puede retroceder');rdaymeta(false);return}rememberDayUT();rdaymeta(false)});
 $('cut').querySelectorAll('button').forEach(function(btn){if(Number(btn.getAttribute('data-i'))<floor){btn.disabled=true;btn.title='Unidad anterior al avance actual'}});
-var u=mx.ut[sel.du];$('uth').textContent=u?u[4]+' sesiones curriculares · '+u[0]+' · Avance automático según programación y máximo registrado; solo permite avanzar':''
+var u=mx.ut[sel.du];$('uth').textContent=u?u[4]+' sesiones curriculares · '+u[0]+' · Avance real confirmado; se conserva por grupo y materia y solo permite avanzar':''
 }else{$('utbox').className='hide';$('cut').innerHTML='';$('uth').textContent=''}
 var p=planOf(sel.m);
 if(p&&isContent){$('sesbox').className='';if(reset){var slots=classSlots(iso(day),sel.g,sel.m),selected=slots.find(function(r){return r.key===sel.classKey})||slots[0];$('ses').value=selected?selected.units:defaultSessions(sel.m,iso(day))}}
