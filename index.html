@@ -744,12 +744,25 @@ var dl={};for(var i=0;i<S.ent.length;i++)dl[S.ent[i].d]=1;
 $('stt').innerHTML='<div><b>'+mes+'</b><small>clases<br>este mes</small></div><div><b>'+res+'</b><small>clases hasta<br>fin de curso</small></div><div><b>'+Object.keys(dl).length+'</b><small>días con<br>anotaciones</small></div>';rHomeAlerts()}
 
 function defaultSessions(mi,ds){var p=planOf(mi);if(!p)return 1;var d=pd(ds),v=p.schedule[d.getDay()]||0;return v||1}
+function rememberedDayUT(gi,mi,ds){
+var mx=mxOf(mi);if(!mx)return 0;var best=null;
+function consider(u,d,id){if(d>ds||!Number.isInteger(u)||u<0||!mx.ut[u])return;if(!best||d>best.d||(d===best.d&&id>best.id))best={u:u,d:d,id:id}}
+S.ent.forEach(function(e){if(e.t===0&&e.g===gi&&e.m===mi)consider(e.u,e.d,Number(e.id)||0)});
+var memory=S.dayUTMemory||{},key=JSON.stringify([S.g[gi]&&S.g[gi].n,S.subj[mi]]),days=memory[key]||{};
+Object.keys(days).forEach(function(d){var v=days[d],u=mx.ut.findIndex(function(x){return x[0]===v.code});consider(u,d,Number(v.at)||0)});
+return best?best.u:0
+}
+function rememberDayUT(){
+var mx=mxOf(sel.m);if(!mx||!mx.ut[sel.du]||!S.g[sel.g])return;
+if(!S.dayUTMemory)S.dayUTMemory={};var key=JSON.stringify([S.g[sel.g].n,S.subj[sel.m]]);
+if(!S.dayUTMemory[key])S.dayUTMemory[key]={};S.dayUTMemory[key][iso(day)]={code:mx.ut[sel.du][0],at:Date.now()};save()
+}
 function rdaymeta(reset){
 var mx=mxOf(sel.m),isContent=sel.t===0;
 if(mx&&isContent){
-$('utbox').className='';if(sel.du>=mx.ut.length)sel.du=0;
-chips($('cut'),mx.ut.map(function(u){return u[0]+' · '+u[1]}),'du',function(){rdaymeta(false)});
-var u=mx.ut[sel.du];$('uth').textContent=u?u[4]+' sesiones curriculares · '+u[0]:''
+$('utbox').className='';if(reset)sel.du=rememberedDayUT(sel.g,sel.m,iso(day));if(sel.du>=mx.ut.length)sel.du=0;
+chips($('cut'),mx.ut.map(function(u){return u[0]+' · '+u[1]}),'du',function(){rememberDayUT();rdaymeta(false)});
+var u=mx.ut[sel.du];$('uth').textContent=u?u[4]+' sesiones curriculares · '+u[0]+' · Se recuerda para este grupo y materia':''
 }else{$('utbox').className='hide';$('cut').innerHTML='';$('uth').textContent=''}
 var p=planOf(sel.m);
 if(p&&isContent){$('sesbox').className='';if(reset)$('ses').value=defaultSessions(sel.m,iso(day))}
@@ -772,7 +785,6 @@ bs[j].onclick=function(){
 var idx=parseInt(this.getAttribute('data-mi'),10);
 if(isNaN(idx))return;
 sel.m=idx;
-sel.du=0;
 rdayModules();
 rdaymeta(true);
 };
@@ -785,7 +797,7 @@ var t='';if(f.cl)t+='<span class="k">Tienes clase</span>';else if(f.le)t+='<span
 for(var i=0;i<f.ms.length;i++)t+='<span style="background:'+TC[f.ms[i][0]]+';border-color:'+TC[f.ms[i][0]]+';color:#fff">'+esc(f.ms[i][3])+'</span>';
 if(!f.le&&!f.ms.length)t+='<span>Fin de semana</span>';$('dtg').innerHTML=t;
 chips($('ag'),gn(),'ag',ratt);
-chips($('cg'),gn(),'g',function(){});
+chips($('cg'),gn(),'g',function(){rdaymeta(true)});
 rdayModules();
 chips($('ct'),TY.map(function(x){return x[1]}),'t',function(){rdaymeta(true)});
 rdaymeta(true);ratt();rent()}
