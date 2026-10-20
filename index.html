@@ -746,13 +746,13 @@ if(!S.att||!S.classAtt||!Array.isArray(S.tt))return 0;
 var changes=[],today=iso(new Date());
 Object.keys(S.att).forEach(function(key){var parts=key.split('|'),ds=parts[0],gi=Number(parts[1]),marks=S.att[key];
 if(parts.length!==2||!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!S.g[gi]||ds>today||!marks)return;
-var linked=Object.keys(S.classAtt).some(function(k){var c=S.classAtt[k];return c.g===gi&&c.d===ds&&c.legacyAssigned});if(linked)return;
+
 var slots=[];S.subj.forEach(function(name,mi){classSlots(ds,gi,mi).forEach(function(c){if(!slots.some(function(x){return x.key===c.key}))slots.push(c)})});
-/* La anotación de una materia no demuestra a qué hora se pasó lista. */
-if(slots.length!==1)return;
-var c=slots[0],existing=S.classAtt[c.key];if(existing&&Object.keys(existing.marks||{}).length)return;
+/* Criterio confirmado por la docente: la lista antigua se aplica a todas las clases del día. */
+slots.forEach(function(c){var existing=S.classAtt[c.key];if(existing&&Object.keys(existing.marks||{}).length)return;
 var valid={};Object.keys(marks).forEach(function(i){if(S.g[gi].st[i]&&['P','R','F','J'].indexOf(marks[i])>=0)valid[i]=marks[i]});if(!Object.keys(valid).length)return;
-var next=clone(c);next.marks=valid;next.legacyAssigned=true;next.legacySourceKey=key;next.recoveryMethod='unique-timetable-class';next.savedAt=new Date().toISOString();changes.push({key:c.key,previous:existing,next:next})
+var next=clone(c);next.marks=valid;next.legacyAssigned=true;next.legacySourceKey=key;next.recoveryMethod='all-day-classes-confirmed';next.savedAt=new Date().toISOString();changes.push({key:c.key,previous:existing,next:next})
+});
 });
 if(!changes.length)return 0;
 try{localStorage.setItem('cuaderno-antes-recuperacion-clases-'+Date.now(),JSON.stringify(S))}catch(e){return 0}
@@ -763,7 +763,8 @@ return changes.length
 function pendingLegacyAttendance(gi,ai,until){
 var end=until||iso(new Date()),rows=[];
 Object.keys(S.att).sort().forEach(function(key){var a=key.split('|'),ds=a[0],marks=S.att[key];if(+a[1]!==gi||ds>end||!marks||!marks[ai])return;
-var assigned=Object.keys(S.classAtt).some(function(k){var c=S.classAtt[k];return c.g===gi&&c.d===ds&&c.legacyAssigned&&c.marks&&c.marks[ai]===marks[ai]});
+var slots=[];S.subj.forEach(function(n,mi){classSlots(ds,gi,mi).forEach(function(c){if(!slots.some(function(x){return x.key===c.key}))slots.push(c)})});
+var assigned=slots.length>0&&slots.every(function(c){var saved=S.classAtt[c.key];return saved&&saved.marks&&['P','R','F','J'].indexOf(saved.marks[ai])>=0});
 if(!assigned)rows.push({d:ds,mark:marks[ai]})});return rows
 }
 function classStats(gi,mi,ai,until){
@@ -784,7 +785,7 @@ return '<div class="su"><div class="n">'+esc(n)+'<small>'+st.f+' injustificadas 
 }).join(''):'<p class="ep">Sin alumnos.</p>';
 if(g){
 var legacyDates={},hasLegacy=false,rows=g.st.map(function(n,i){var old=pendingLegacyAttendance(gi,i),counts={P:0,R:0,F:0,J:0};old.forEach(function(r){if(counts[r.mark]!==undefined)counts[r.mark]++;legacyDates[r.d]=1});if(!old.length)return '';hasLegacy=true;return '<div class="su"><div class="n">'+esc(n)+'<small>'+counts.F+' faltas injustificadas · '+counts.J+' justificadas · '+counts.P+' presencias · '+counts.R+' retrasos</small></div></div>'}).join('');
-if(hasLegacy){$('slst').insertAdjacentHTML('afterbegin','<div class="noteinfo"><h3>Asistencia guardada anteriormente</h3><p>Estos son los valores del historial del grupo que aún tienen varias clases posibles. Las listas con una única clase posible se incorporan automáticamente. No son faltas adicionales ni se multiplican por las clases del día. Asigna cada fecha a su clase para completar los porcentajes del módulo.</p>'+rows+'<details><summary>Revisar fechas del historial</summary>'+Object.keys(legacyDates).sort().map(function(ds){return '<button type="button" class="b" data-review-att="'+ds+'">Revisar '+sh(ds)+'</button>'}).join(' ')+'</details></div>');
+if(hasLegacy){$('slst').insertAdjacentHTML('afterbegin','<div class="noteinfo"><h3>Asistencia guardada anteriormente</h3><p>Estos son los valores del historial que aún no se han podido incorporar. La lista antigua se aplica automáticamente a todas las clases del día según el horario. Si falta el horario de alguna fecha, revísalo en Ajustes. Cada franja cuenta como un periodo lectivo de su materia. Se respetan las listas por clase ya registradas.</p>'+rows+'<details><summary>Revisar fechas del historial</summary>'+Object.keys(legacyDates).sort().map(function(ds){return '<button type="button" class="b" data-review-att="'+ds+'">Revisar '+sh(ds)+'</button>'}).join(' ')+'</details></div>');
 $('slst').querySelectorAll('[data-review-att]').forEach(function(btn){btn.onclick=function(){day=pd(this.getAttribute('data-review-att'));sel.ag=gi;sel.g=gi;sel.m=mi;sel.classKey=null;setv('dia');$('legacyClass').scrollIntoView({block:'center'})}})}
 }
 }
