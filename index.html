@@ -709,6 +709,7 @@ function classKey(ds,gi,id,mi){return ds+'|'+gi+'|'+encodeURIComponent(String(id
 function secondYear(gi){return /^2[º°o]?\s/.test(groupName(gi))}
 function inPlacement(gi,ds){return secondYear(gi)&&ds>='2027-03-04'&&ds<='2027-06-16'}
 function classSlots(ds,gi,mi){
+if(groupSubjectIndices(gi).indexOf(mi)<0)return [];
 var list=[],group=S.g[gi],subject=S.subj[mi];if(!group||!subject)return list;
 var p=planOf(mi),end=subject==='Presentación y venta al público'?((S.evals.find(function(e){return e.id==='school-second-2'})||{}).date||'2027-03-02'):(p?p.end:'2027-06-17'),allowed=inf(ds).le&&!inPlacement(gi,ds)&&(!p||(ds>=p.start&&ds<=end));
 if(allowed)S.tt.forEach(function(slot,i){if(+slot.d!==pd(ds).getDay()||slot.g!==group.n||slot.s!==subject)return;
@@ -778,7 +779,7 @@ var rows=[];Object.keys(S.classAtt).forEach(function(key){var r=S.classAtt[key];
 }
 function renderClassSummary(){
 var gi=sel.sg,mi=sel.am===undefined?sel.m:sel.am,g=S.g[gi];
-chips($('attendanceSubjects'),S.subj,'am',rdia2);mi=sel.am;
+groupSubjectChips($('attendanceSubjects'),gi,'am',rdia2);mi=sel.am;
 var total=attendanceTotal(mi);$('attendanceScope').textContent='Por clase y materia · '+(total?total+' periodos lectivos del módulo · umbral: '+Math.ceil(total*.15)+' faltas injustificadas':'Configura las horas del módulo en Ajustes')+'. Los registros diarios antiguos requieren revisión.';
 $('slst').innerHTML=g?g.st.map(function(n,i){var st=classStats(gi,mi,i),partial=st.unmarked||st.legacy;
 return '<div class="su"><div class="n">'+esc(n)+'<small>'+st.f+' injustificadas · '+st.j+' justificadas · '+st.t+' periodos registrados'+(st.unmarked?' · '+st.unmarked+' sin marcar':'')+(st.legacy?' · '+st.legacy+' registros anteriores sin asignar a clase':'')+'</small><small>Faltas injustificadas sobre el módulo: '+(st.absence===null?'sin horas configuradas':st.legacy?'pendiente de completar el historial (mínimo confirmado: '+st.absence.toFixed(2)+'%)':st.absence.toFixed(2)+'%')+'</small><span class="attlight '+(st.alert?'red':partial||!st.t||!st.total?'amber':'')+'">'+(st.alert?'● Umbral del 15 % alcanzado':!st.total?'● Configura las horas':partial?'● Cálculo parcial':!st.t?'● Sin registros por clase':'● Por debajo del 15 %')+'</span></div><b>'+(st.pc===null?'—':st.pc.toFixed(1)+'%')+'<small>asistencia registrada</small></b></div>'
@@ -913,7 +914,7 @@ var c=S.dayContext;if(!c)return;
 var gi=S.g.findIndex(function(g){return g.n===c.group}),mi=S.subj.indexOf(c.subject);
 if(gi>=0)sel.g=sel.ag=gi;if(mi>=0)sel.m=mi
 }
-function selectDayGroup(gi){sel.g=sel.ag=gi;rememberDayContext();rdia()}
+function selectDayGroup(gi){sel.g=sel.ag=gi;sel.classKey=null;ensureDaySubject();rememberDayContext();rdia()}
 function hasAcademicHistory(){return S.ent.length>0||Object.keys(S.att).length>0||Object.keys(S.nt).length>0||Object.keys(S.rec).length>0||Object.keys(S.classAtt||{}).length>0}
 function rememberedDayUT(gi,mi,ds){
 var mx=mxOf(mi);if(!mx)return 0;var highest=0,name=S.subj[mi],group=S.g[gi];
@@ -950,8 +951,22 @@ else $('sesbox').className='hide'
 }
 /* Selector de módulos de la pestaña Día.
    Usa índices reales de S.subj y evita que datos antiguos/duplicados bloqueen los botones. */
+function groupSubjectIndices(gi){
+var group=S.g[gi];if(!group)return [];
+var year=/^1/.test(group.n)?1:/^2/.test(group.n)?2:0;
+var fixed={'Materias primas':1,'Innovación':1,'Digitalización':1,'Presentación y venta al público':2};
+return S.subj.map(function(n,i){return i}).filter(function(mi){var name=S.subj[mi];if(year&&fixed[name])return fixed[name]===year;return S.tt.some(function(slot){return slot.g===group.n&&slot.s===name})})
+}
+function ensureDaySubject(){
+var allowed=groupSubjectIndices(sel.g);if(allowed.indexOf(sel.m)<0){sel.m=allowed.length?allowed[0]:-1;sel.classKey=null;sel.du=0}return allowed
+}
+function groupSubjectChips(el,gi,key,cb){
+var allowed=groupSubjectIndices(gi);if(allowed.indexOf(sel[key])<0)sel[key]=allowed.length?allowed[0]:-1;
+el.innerHTML=allowed.map(function(mi){return '<button data-mi="'+mi+'" class="'+(sel[key]===mi?'on':'')+'">'+esc(S.subj[mi])+'</button>'}).join('')||'<span class="hi">Sin materias asignadas a este grupo.</span>';
+el.querySelectorAll('[data-mi]').forEach(function(btn){btn.onclick=function(){sel[key]=Number(this.getAttribute('data-mi'));cb()}})
+}
 function rdayModules(){
-var names=['Materias primas','Innovación','Digitalización','Presentación y venta al público'];
+var allowed=ensureDaySubject(),names=allowed.map(function(mi){return S.subj[mi]});
 var h='';
 for(var i=0;i<names.length;i++){
 var idx=S.subj.indexOf(names[i]);
@@ -1337,6 +1352,7 @@ $('pd').onclick=function(){day.setDate(day.getDate()-1);rdia()};$('nd').onclick=
 $('dp').onchange=function(){if(this.value){day=pd(this.value);rdia()}};
 $('allp').onclick=function(){writeClassMark(null,null,true)};
 $('sv').onclick=function(){var t=$('tx').value.trim();if(!t){$('mh').textContent='Escribe o dicta algo primero.';return}if(!S.g.length){$('mh').textContent='Añade un grupo en Ajustes.';return}
+if(groupSubjectIndices(sel.g).indexOf(sel.m)<0){$('mh').textContent='Selecciona una materia de este curso.';rdayModules();return}
 stop();var e={id:Date.now(),d:iso(day),g:sel.g,m:sel.m,t:sel.t,x:t};
 if(sel.t===0){var mx=mxOf(sel.m),p=planOf(sel.m);if(mx)e.u=sel.du;if(p){var sv=parseInt($('ses').value,10);e.ses=isNaN(sv)||sv<1?defaultSessions(sel.m,e.d):sv}}
 if(e.t===0){var attended=selectedClass();if(attended&&attended.g===e.g&&attended.m===e.m&&Number(e.ses)===Number(attended.units)){e.classKey=attended.key;e.start=attended.start;e.end=attended.end}}S.ent.push(e);if(!save()){S.ent.pop();$('mh').textContent='No guardado. El texto se conserva para que puedas reintentar.';return}$('tx').value='';rent();$('mh').textContent='Guardado: '+sh(e.d)+' · '+(S.g[e.g]?S.g[e.g].n:'')+' · '+S.subj[e.m]+entryMeta(e)};
