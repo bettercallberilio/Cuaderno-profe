@@ -740,6 +740,26 @@ var r=S.att[ak(ds,gi)],g=S.g[gi];if(!r||!Object.keys(r).length||!g)return '';
 return '<details class="noteinfo"><summary>Registro anterior conservado · pendiente de revisar por clase</summary><p>No se ha repartido automáticamente entre materias u horas. Comprueba a qué clase correspondía antes de asignarlo.</p>'+g.st.map(function(n,i){return r[i]?'<div>'+esc(n)+' · '+esc(r[i])+'</div>':''}).join('')+'<button type="button" class="b" id="assignLegacyClass">Asignar estas marcas a la clase seleccionada</button></details>'
 }
 function attendanceTotal(mi){var name=S.subj[mi],v=S.attendanceHours&&S.attendanceHours[name];return v===undefined?(PLANS[name]?Number(PLANS[name].target):null):(Number(v)>0?Number(v):null)}
+/* Recuperar listas antiguas solo cuando el horario permite identificar una única clase. */
+function autoRecoverClassAttendance(){
+if(!S.att||!S.classAtt||!Array.isArray(S.tt))return 0;
+var changes=[],today=iso(new Date());
+Object.keys(S.att).forEach(function(key){var parts=key.split('|'),ds=parts[0],gi=Number(parts[1]),marks=S.att[key];
+if(parts.length!==2||!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!S.g[gi]||ds>today||!marks)return;
+var linked=Object.keys(S.classAtt).some(function(k){var c=S.classAtt[k];return c.g===gi&&c.d===ds&&c.legacyAssigned});if(linked)return;
+var slots=[];S.subj.forEach(function(name,mi){classSlots(ds,gi,mi).forEach(function(c){if(!slots.some(function(x){return x.key===c.key}))slots.push(c)})});
+/* La anotación de una materia no demuestra a qué hora se pasó lista. */
+if(slots.length!==1)return;
+var c=slots[0],existing=S.classAtt[c.key];if(existing&&Object.keys(existing.marks||{}).length)return;
+var valid={};Object.keys(marks).forEach(function(i){if(S.g[gi].st[i]&&['P','R','F','J'].indexOf(marks[i])>=0)valid[i]=marks[i]});if(!Object.keys(valid).length)return;
+var next=clone(c);next.marks=valid;next.legacyAssigned=true;next.legacySourceKey=key;next.recoveryMethod='unique-timetable-class';next.savedAt=new Date().toISOString();changes.push({key:c.key,previous:existing,next:next})
+});
+if(!changes.length)return 0;
+try{localStorage.setItem('cuaderno-antes-recuperacion-clases-'+Date.now(),JSON.stringify(S))}catch(e){return 0}
+changes.forEach(function(x){S.classAtt[x.key]=x.next});
+if(!save()){changes.forEach(function(x){if(x.previous)S.classAtt[x.key]=x.previous;else delete S.classAtt[x.key]});return 0}
+return changes.length
+}
 function pendingLegacyAttendance(gi,ai,until){
 var end=until||iso(new Date()),rows=[];
 Object.keys(S.att).sort().forEach(function(key){var a=key.split('|'),ds=a[0],marks=S.att[key];if(+a[1]!==gi||ds>end||!marks||!marks[ai])return;
@@ -764,7 +784,7 @@ return '<div class="su"><div class="n">'+esc(n)+'<small>'+st.f+' injustificadas 
 }).join(''):'<p class="ep">Sin alumnos.</p>';
 if(g){
 var legacyDates={},hasLegacy=false,rows=g.st.map(function(n,i){var old=pendingLegacyAttendance(gi,i),counts={P:0,R:0,F:0,J:0};old.forEach(function(r){if(counts[r.mark]!==undefined)counts[r.mark]++;legacyDates[r.d]=1});if(!old.length)return '';hasLegacy=true;return '<div class="su"><div class="n">'+esc(n)+'<small>'+counts.F+' faltas injustificadas · '+counts.J+' justificadas · '+counts.P+' presencias · '+counts.R+' retrasos</small></div></div>'}).join('');
-if(hasLegacy){$('slst').insertAdjacentHTML('afterbegin','<div class="noteinfo"><h3>Asistencia guardada anteriormente</h3><p>Estos son los valores reales del historial del grupo, aún sin materia ni hora asignadas. No son faltas adicionales ni se multiplican por las clases del día. Asigna cada fecha a su clase para completar los porcentajes del módulo.</p>'+rows+'<details><summary>Revisar fechas del historial</summary>'+Object.keys(legacyDates).sort().map(function(ds){return '<button type="button" class="b" data-review-att="'+ds+'">Revisar '+sh(ds)+'</button>'}).join(' ')+'</details></div>');
+if(hasLegacy){$('slst').insertAdjacentHTML('afterbegin','<div class="noteinfo"><h3>Asistencia guardada anteriormente</h3><p>Estos son los valores del historial del grupo que aún tienen varias clases posibles. Las listas con una única clase posible se incorporan automáticamente. No son faltas adicionales ni se multiplican por las clases del día. Asigna cada fecha a su clase para completar los porcentajes del módulo.</p>'+rows+'<details><summary>Revisar fechas del historial</summary>'+Object.keys(legacyDates).sort().map(function(ds){return '<button type="button" class="b" data-review-att="'+ds+'">Revisar '+sh(ds)+'</button>'}).join(' ')+'</details></div>');
 $('slst').querySelectorAll('[data-review-att]').forEach(function(btn){btn.onclick=function(){day=pd(this.getAttribute('data-review-att'));sel.ag=gi;sel.g=gi;sel.m=mi;sel.classKey=null;setv('dia');$('legacyClass').scrollIntoView({block:'center'})}})}
 }
 }
@@ -1284,7 +1304,7 @@ function bind(at,fn){var es=document.querySelectorAll('[data-'+at+']');for(var i
 function click(at,fn){var es=document.querySelectorAll('[data-'+at+']');for(var i=0;i<es.length;i++)es[i].onclick=function(){fn(this.getAttribute('data-'+at))}}
 
 function setv(v){V=v;var active=(v==='seg'||v==='hor')?'cal':v,ns=document.querySelectorAll('nav button');for(var i=0;i<ns.length;i++)ns[i].className=ns[i].getAttribute('data-v')===active?'on':'';['cal','seg','hor','dia','dia2','prog','plan','not','aj'].forEach(function(x){$('v-'+x).className=x===v?'':'hide'});window.scrollTo(0,0);rall()}
-function rall(){if(V==='cal')rcal();if(V==='seg')rseg();if(V==='hor')rhor();if(V==='dia')rdia();if(V==='dia2')rdia2();if(V==='prog')rprog();if(V==='plan')rplan();if(V==='not')rnot();if(V==='aj')raj()}
+function rall(){autoRecoverClassAttendance();if(V==='cal')rcal();if(V==='seg')rseg();if(V==='hor')rhor();if(V==='dia')rdia();if(V==='dia2')rdia2();if(V==='prog')rprog();if(V==='plan')rplan();if(V==='not')rnot();if(V==='aj')raj()}
 
 /* ===== eventos ===== */
 var ns=document.querySelectorAll('nav button');for(var i=0;i<ns.length;i++)ns[i].onclick=function(){setv(this.getAttribute('data-v'))};
