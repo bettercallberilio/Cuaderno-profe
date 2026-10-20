@@ -916,12 +916,20 @@ if(gi>=0)sel.g=sel.ag=gi;if(mi>=0)sel.m=mi
 function selectDayGroup(gi){sel.g=sel.ag=gi;rememberDayContext();rdia()}
 function hasAcademicHistory(){return S.ent.length>0||Object.keys(S.att).length>0||Object.keys(S.nt).length>0||Object.keys(S.rec).length>0||Object.keys(S.classAtt||{}).length>0}
 function rememberedDayUT(gi,mi,ds){
-var mx=mxOf(mi);if(!mx)return 0;var best=null;
-function consider(u,d,id){if(d>ds||!Number.isInteger(u)||u<0||!mx.ut[u])return;if(!best||d>best.d||(d===best.d&&id>best.id))best={u:u,d:d,id:id}}
-S.ent.forEach(function(e){if(e.t===0&&e.g===gi&&e.m===mi)consider(e.u,e.d,Number(e.id)||0)});
-var memory=S.dayUTMemory||{},key=JSON.stringify([S.g[gi]&&S.g[gi].n,S.subj[mi]]),days=memory[key]||{};
-Object.keys(days).forEach(function(d){var v=days[d],u=mx.ut.findIndex(function(x){return x[0]===v.code});consider(u,d,Number(v.at)||0)});
-return best?best.u:0
+var mx=mxOf(mi);if(!mx)return 0;var highest=0,name=S.subj[mi],group=S.g[gi];
+function consider(u,d){if(d>ds||!Number.isInteger(u)||u<0||!mx.ut[u])return;highest=Math.max(highest,u)}
+S.ent.forEach(function(e){if(e.t===0&&e.g===gi&&e.m===mi)consider(e.u,e.d)});
+var memory=S.dayUTMemory||{},key=JSON.stringify([group&&group.n,name]),days=memory[key]||{};
+Object.keys(days).forEach(function(d){var v=days[d];consider(mx.ut.findIndex(function(x){return x[0]===v.code}),d)});
+/* Avance automático según programación, solo en el grupo que imparte la materia. */
+if(group&&S.tt.some(function(slot){return slot.g===group.n&&slot.s===name})){
+var p=planOf(mi),cursor=p&&ds>p.end?p.end:ds,planned='';
+while(p&&cursor>=p.start&&!planned){planned=theoreticalUT(name,cursor);if(!planned)cursor=addDays(cursor,-1)}
+consider(mx.ut.findIndex(function(x){return x[0]===planned}),ds)
+}
+/* Punto de partida confirmado por Cristina; no modifica anotaciones anteriores. */
+if(group&&/^1[º.º ]/.test(group.n)&&name==='Materias primas'&&ds>='2026-10-21')consider(mx.ut.findIndex(function(x){return x[0]==='UT2'}),'2026-10-21');
+return highest
 }
 function rememberDayUT(){
 var mx=mxOf(sel.m);if(!mx||!mx.ut[sel.du]||!S.g[sel.g])return;
@@ -931,9 +939,10 @@ if(!S.dayUTMemory[key])S.dayUTMemory[key]={};S.dayUTMemory[key][iso(day)]={code:
 function rdaymeta(reset){
 var mx=mxOf(sel.m),isContent=sel.t===0;
 if(mx&&isContent){
-$('utbox').className='';if(reset)sel.du=rememberedDayUT(sel.g,sel.m,iso(day));if(sel.du>=mx.ut.length)sel.du=0;
-chips($('cut'),mx.ut.map(function(u){return u[0]+' · '+u[1]}),'du',function(){rememberDayUT();rdaymeta(false)});
-var u=mx.ut[sel.du];$('uth').textContent=u?u[4]+' sesiones curriculares · '+u[0]+' · Se recuerda para este grupo y materia':''
+$('utbox').className='';var floor=rememberedDayUT(sel.g,sel.m,iso(day));if(reset||!Number.isInteger(sel.du)||sel.du<floor||sel.du>=mx.ut.length)sel.du=floor;
+chips($('cut'),mx.ut.map(function(u){return u[0]+' · '+u[1]}),'du',function(){if(sel.du<floor){sel.du=floor;tos('El avance de esta materia no puede retroceder');rdaymeta(false);return}rememberDayUT();rdaymeta(false)});
+$('cut').querySelectorAll('button').forEach(function(btn){if(Number(btn.getAttribute('data-i'))<floor){btn.disabled=true;btn.title='Unidad anterior al avance actual'}});
+var u=mx.ut[sel.du];$('uth').textContent=u?u[4]+' sesiones curriculares · '+u[0]+' · Avance automático según programación y máximo registrado; solo permite avanzar':''
 }else{$('utbox').className='hide';$('cut').innerHTML='';$('uth').textContent=''}
 var p=planOf(sel.m);
 if(p&&isContent){$('sesbox').className='';if(reset){var slots=classSlots(iso(day),sel.g,sel.m),selected=slots.find(function(r){return r.key===sel.classKey})||slots[0];$('ses').value=selected?selected.units:defaultSessions(sel.m,iso(day))}}
