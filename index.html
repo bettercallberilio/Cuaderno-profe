@@ -740,10 +740,16 @@ var r=S.att[ak(ds,gi)],g=S.g[gi];if(!r||!Object.keys(r).length||!g)return '';
 return '<details class="noteinfo"><summary>Registro anterior conservado · pendiente de revisar por clase</summary><p>No se ha repartido automáticamente entre materias u horas. Comprueba a qué clase correspondía antes de asignarlo.</p>'+g.st.map(function(n,i){return r[i]?'<div>'+esc(n)+' · '+esc(r[i])+'</div>':''}).join('')+'<button type="button" class="b" id="assignLegacyClass">Asignar estas marcas a la clase seleccionada</button></details>'
 }
 function attendanceTotal(mi){var name=S.subj[mi],v=S.attendanceHours&&S.attendanceHours[name];return v===undefined?(PLANS[name]?Number(PLANS[name].target):null):(Number(v)>0?Number(v):null)}
+function pendingLegacyAttendance(gi,ai,until){
+var end=until||iso(new Date()),rows=[];
+Object.keys(S.att).sort().forEach(function(key){var a=key.split('|'),ds=a[0],marks=S.att[key];if(+a[1]!==gi||ds>end||!marks||!marks[ai])return;
+var assigned=Object.keys(S.classAtt).some(function(k){var c=S.classAtt[k];return c.g===gi&&c.d===ds&&c.legacyAssigned&&c.marks&&c.marks[ai]===marks[ai]});
+if(!assigned)rows.push({d:ds,mark:marks[ai]})});return rows
+}
 function classStats(gi,mi,ai,until){
 var out={p:0,r:0,f:0,j:0,t:0,unmarked:0,legacy:0},end=until||iso(new Date());
 Object.keys(S.classAtt).forEach(function(key){var c=S.classAtt[key];if(c.g!==gi||c.m!==mi||c.d>end)return;var u=Number(c.units)||1,v=c.marks[ai];if(v==='P')out.p+=u;else if(v==='R')out.r+=u;else if(v==='F')out.f+=u;else if(v==='J')out.j+=u;else out.unmarked+=u});
-Object.keys(S.att).forEach(function(key){var a=key.split('|');if(+a[1]===gi&&a[0]<=end&&S.att[key][ai])out.legacy++});
+out.legacy=pendingLegacyAttendance(gi,ai,end).length;
 out.t=out.p+out.r+out.f+out.j;out.pc=out.t?(out.p+out.r)/out.t*100:null;out.total=attendanceTotal(mi);out.absence=out.total?out.f/out.total*100:null;out.alert=out.total!==null&&out.f*100>=out.total*15;return out
 }
 function classSummary(gi,ds){
@@ -752,10 +758,15 @@ var rows=[];Object.keys(S.classAtt).forEach(function(key){var r=S.classAtt[key];
 function renderClassSummary(){
 var gi=sel.sg,mi=sel.am===undefined?sel.m:sel.am,g=S.g[gi];
 chips($('attendanceSubjects'),S.subj,'am',rdia2);mi=sel.am;
-var total=attendanceTotal(mi);$('attendanceScope').textContent='Por clase y materia · '+(total?total+' periodos lectivos del módulo · umbral: '+(total*.15).toFixed(2):'Configura las horas del módulo en Ajustes')+'. Los registros diarios antiguos requieren revisión.';
+var total=attendanceTotal(mi);$('attendanceScope').textContent='Por clase y materia · '+(total?total+' periodos lectivos del módulo · umbral: '+Math.ceil(total*.15)+' faltas injustificadas':'Configura las horas del módulo en Ajustes')+'. Los registros diarios antiguos requieren revisión.';
 $('slst').innerHTML=g?g.st.map(function(n,i){var st=classStats(gi,mi,i),partial=st.unmarked||st.legacy;
-return '<div class="su"><div class="n">'+esc(n)+'<small>'+st.f+' injustificadas · '+st.j+' justificadas · '+st.t+' periodos registrados'+(st.unmarked?' · '+st.unmarked+' sin marcar':'')+(st.legacy?' · historial anterior por revisar':'')+'</small><small>Faltas injustificadas sobre el módulo: '+(st.absence===null?'sin horas configuradas':st.absence.toFixed(2)+'%')+'</small><span class="attlight '+(st.alert?'red':partial||!st.t||!st.total?'amber':'')+'">'+(st.alert?'● Umbral del 15 % alcanzado':!st.total?'● Configura las horas':partial?'● Cálculo parcial':!st.t?'● Sin registros por clase':'● Por debajo del 15 %')+'</span></div><b>'+(st.pc===null?'—':st.pc.toFixed(1)+'%')+'<small>asistencia registrada</small></b></div>'
-}).join(''):'<p class="ep">Sin alumnos.</p>'
+return '<div class="su"><div class="n">'+esc(n)+'<small>'+st.f+' injustificadas · '+st.j+' justificadas · '+st.t+' periodos registrados'+(st.unmarked?' · '+st.unmarked+' sin marcar':'')+(st.legacy?' · '+st.legacy+' registros anteriores sin asignar a clase':'')+'</small><small>Faltas injustificadas sobre el módulo: '+(st.absence===null?'sin horas configuradas':st.legacy?'pendiente de completar el historial (mínimo confirmado: '+st.absence.toFixed(2)+'%)':st.absence.toFixed(2)+'%')+'</small><span class="attlight '+(st.alert?'red':partial||!st.t||!st.total?'amber':'')+'">'+(st.alert?'● Umbral del 15 % alcanzado':!st.total?'● Configura las horas':partial?'● Cálculo parcial':!st.t?'● Sin registros por clase':'● Por debajo del 15 %')+'</span></div><b>'+(st.pc===null?'—':st.pc.toFixed(1)+'%')+'<small>asistencia registrada</small></b></div>'
+}).join(''):'<p class="ep">Sin alumnos.</p>';
+if(g){
+var legacyDates={},hasLegacy=false,rows=g.st.map(function(n,i){var old=pendingLegacyAttendance(gi,i),counts={P:0,R:0,F:0,J:0};old.forEach(function(r){if(counts[r.mark]!==undefined)counts[r.mark]++;legacyDates[r.d]=1});if(!old.length)return '';hasLegacy=true;return '<div class="su"><div class="n">'+esc(n)+'<small>'+counts.F+' faltas injustificadas · '+counts.J+' justificadas · '+counts.P+' presencias · '+counts.R+' retrasos</small></div></div>'}).join('');
+if(hasLegacy){$('slst').insertAdjacentHTML('afterbegin','<div class="noteinfo"><h3>Asistencia guardada anteriormente</h3><p>Estos son los valores reales del historial del grupo, aún sin materia ni hora asignadas. No son faltas adicionales ni se multiplican por las clases del día. Asigna cada fecha a su clase para completar los porcentajes del módulo.</p>'+rows+'<details><summary>Revisar fechas del historial</summary>'+Object.keys(legacyDates).sort().map(function(ds){return '<button type="button" class="b" data-review-att="'+ds+'">Revisar '+sh(ds)+'</button>'}).join(' ')+'</details></div>');
+$('slst').querySelectorAll('[data-review-att]').forEach(function(btn){btn.onclick=function(){day=pd(this.getAttribute('data-review-att'));sel.ag=gi;sel.g=gi;sel.m=mi;sel.classKey=null;setv('dia');$('legacyClass').scrollIntoView({block:'center'})}})}
+}
 }
 function renderAttendanceHours(){
 $('attendanceHours').innerHTML=S.subj.map(function(name,mi){if(!PLANS[name]&&!(S.attendanceHours&&S.attendanceHours[name]))return '';return '<div class="ir"><label>'+esc(name)+'<input type="number" min="1" step="0.01" data-atthours="'+mi+'" value="'+(attendanceTotal(mi)||'')+'"></label></div>'}).join('');
