@@ -253,11 +253,12 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 </style>
 <script defer src="./vendor/jszip.min.js"></script>
 <script defer src="./reports.js"></script>
+<script defer src="./word-reports.js"></script>
 </head>
 <body>
 <header><div class="w"><h1>Cuaderno de aula <span id="syncBadge" class="syncbadge">☁ Local</span></h1>
 <nav><button class="on" data-v="cal">Calendario</button><button data-v="dia">Día</button><button data-v="dia2">Diario</button><button data-v="prog">UT</button><button data-v="not">Notas</button><button data-v="aj">Ajustes</button></nav>
-<div class="hi" id="appVersion" style="padding:4px 0 8px">Versión 10 · cursos y UT corregidos <button type="button" class="b" id="refreshApp">Actualizar app</button></div></div></header>
+<div class="hi" id="appVersion" style="padding:4px 0 8px">Versión 11 · seguimiento Word y Excel <button type="button" class="b" id="refreshApp">Actualizar app</button></div></div></header>
 <div id="globalPending" class="pendingbar hide"></div>
 <main class="w">
 <p id="storageStatus" class="hi" role="status" aria-live="polite"></p>
@@ -325,7 +326,7 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 <div class="ir"><label>Fecha de corte <input type="date" id="reportCutoff"></label></div>
 <div class="ir"><label>Materias <select id="trackingSubject"></select></label></div>
 <p class="hi">Informe acumulado desde el inicio del curso hasta la fecha indicada. Abre cada materia para registrar observaciones y medidas correctoras.</p>
-<div id="reportReview"></div><button class="b p" id="downloadTracking">Descargar seguimiento Excel</button>
+<div id="reportReview"></div><button class="b p" id="downloadTracking">Descargar seguimiento Excel</button><button class="b" id="downloadTrackingWord">Descargar seguimiento Word</button>
 <p class="hi" role="status" id="reportMessage"></p></div>
 <div class="rw" style="margin:16px 0 8px"><button class="b g" id="cpd">Copiar diario</button><button class="b g" id="cpt">Copiar asistencia</button></div>
 <p class="hi" id="cst">Se pega en Excel con una columna por dato.</p>
@@ -1349,7 +1350,7 @@ function setv(v){V=v;var active=(v==='seg'||v==='hor')?'cal':v,ns=document.query
 function rall(){applyConfirmedCourseSubjects();autoRecoverClassAttendance();if(V==='cal')rcal();if(V==='seg')rseg();if(V==='hor')rhor();if(V==='dia')rdia();if(V==='dia2')rdia2();if(V==='prog')rprog();if(V==='plan')rplan();if(V==='not')rnot();if(V==='aj')raj()}
 
 /* ===== eventos ===== */
-$('refreshApp').onclick=async function(){if($('tx').value.trim()){tos('Guarda primero la anotación que estás escribiendo');return}this.disabled=true;this.textContent='Actualizando…';try{if('serviceWorker' in navigator){var regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(function(r){return r.update()}))}var url=new URL(location.href);url.searchParams.set('version','10');url.searchParams.set('actualizar',String(Date.now()));location.replace(url.href)}catch(e){this.disabled=false;this.textContent='Actualizar app';tos('No se ha podido actualizar. Comprueba la conexión')}};
+$('refreshApp').onclick=async function(){if($('tx').value.trim()){tos('Guarda primero la anotación que estás escribiendo');return}this.disabled=true;this.textContent='Actualizando…';try{if('serviceWorker' in navigator){var regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(function(r){return r.update()}))}var url=new URL(location.href);url.searchParams.set('version','11');url.searchParams.set('actualizar',String(Date.now()));location.replace(url.href)}catch(e){this.disabled=false;this.textContent='Actualizar app';tos('No se ha podido actualizar. Comprueba la conexión')}};
 
 var ns=document.querySelectorAll('nav button');for(var i=0;i<ns.length;i++)ns[i].onclick=function(){setv(this.getAttribute('data-v'))};
 $('calendarYear').onchange=function(){sel.calendarYear=Number(this.value);rcal()};
