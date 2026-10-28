@@ -27,7 +27,7 @@ rows.push([secondYear(gi)?'2º':'1º',abbr,u[0]+'\n'+u[1],lines.join('\n'),measu
 function wordTrackingText(s){return rx(String(s)).replace(/\n/g,'</w:t><w:br/><w:t xml:space="preserve">')}
 async function buildTrackingWord(subject,cutoff){
 if(!/^\d{4}-\d{2}-\d{2}$/.test(cutoff))throw Error('Introduce una fecha de corte válida.');
-var template=await loadWordTrackingTemplate(),zip=new JSZip();Object.keys(template.parts).forEach(function(path){zip.file(path,template.parts[path].base64,{base64:true})});
+var template=await loadWordTrackingTemplate(),zip=await JSZip.loadAsync(template.base64,{base64:true});
 var xml=await zip.file('word/document.xml').async('string'),profile=reportProfile();
 [['COURSE',profile.course],['DEPARTMENT',profile.department],['DATE',new Date(cutoff+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})],['TEACHER',profile.teacher]].forEach(function(pair){xml=xml.split('{{'+pair[0]+'}}').join(wordTrackingText(pair[1]))});
 var rowRe=/<w:tr\b[^>]*>[\s\S]*?<\/w:tr>/g,sourceRows=xml.match(rowRe)||[],proto=sourceRows.find(function(row){return row.indexOf('{{C0}}')>=0});if(!proto)throw Error('El modelo Word no contiene la fila de seguimiento.');
