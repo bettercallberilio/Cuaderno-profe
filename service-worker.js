@@ -1,6 +1,8 @@
-const CACHE_NAME = 'cuaderno-aula-26-27-v10';
+const CACHE_NAME = 'cuaderno-aula-26-27-v11';
 
 const APP_FILES = [
+  './word-reports.js',
+  './tracking-word-template.json',
   './reports.js',
   './export-models.json',
   './vendor/jszip.min.js',
