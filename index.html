@@ -258,7 +258,7 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 <body>
 <header><div class="w"><h1>Cuaderno de aula <span id="syncBadge" class="syncbadge">☁ Local</span></h1>
 <nav><button class="on" data-v="cal">Calendario</button><button data-v="dia">Día</button><button data-v="dia2">Diario</button><button data-v="prog">UT</button><button data-v="not">Notas</button><button data-v="aj">Ajustes</button></nav>
-<div class="hi" id="appVersion" style="padding:4px 0 8px">Versión 11 · seguimiento Word y Excel <button type="button" class="b" id="refreshApp">Actualizar app</button></div></div></header>
+<div class="hi" id="appVersion" style="padding:4px 0 8px">Versión 12 · alertas por evaluación <button type="button" class="b" id="refreshApp">Actualizar app</button></div></div></header>
 <div id="globalPending" class="pendingbar hide"></div>
 <main class="w">
 <p id="storageStatus" class="hi" role="status" aria-live="polite"></p>
@@ -330,7 +330,7 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 <p class="hi" role="status" id="reportMessage"></p></div>
 <div class="rw" style="margin:16px 0 8px"><button class="b g" id="cpd">Copiar diario</button><button class="b g" id="cpt">Copiar asistencia</button></div>
 <p class="hi" id="cst">Se pega en Excel con una columna por dato.</p>
-<div class="card"><h3>Resumen de asistencia</h3><div class="ch" id="sg"></div><div class="ch" id="attendanceSubjects"></div><p class="hi" id="attendanceScope"></p><div id="slst"></div></div>
+<div class="card"><h3>Alertas de evaluación continua</h3><div id="termAttendanceAlerts"></div></div><div class="card"><h3>Resumen de asistencia</h3><div class="ch" id="sg"></div><div class="ch" id="attendanceSubjects"></div><div class="ch" id="attendanceTerms"></div><p class="hi" id="attendanceScope"></p><div id="slst"></div></div>
 <div id="dlst"></div>
 </section>
 
@@ -434,7 +434,7 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 <div class="card"><h3>Módulos</h3><div id="mlst"></div>
 <div class="ir" style="margin-top:10px"><input id="nmd" placeholder="Nuevo módulo"><button class="b" id="amb">Añadir</button></div>
 <p class="hi">Los módulos con matriz de RA configurada pueden calificar en la pestaña Notas.</p></div>
-<div class="card"><h3>Horas para el control de faltas</h3><p class="hi">Horas o periodos lectivos totales del módulo, según su programación. Solo F computa para el 15 %. Los valores iniciales son los que ya estaban configurados en el cuaderno; revísalos con la programación definitiva.</p><div id="attendanceHours"></div></div>
+<div class="card"><h3>Horas para el control de faltas</h3><p class="hi">Horas o periodos lectivos totales del módulo, según su programación. La alerta del 15 % se calcula por evaluación con el horario y el calendario. Solo cuentan las faltas injustificadas (F).</p><div id="attendanceHours"></div></div>
 <div class="card"><h3>Reglas de calificación</h3>
 <div class="ir">Examen <input id="pe" type="number" min="0" max="100" value="50" disabled style="max-width:74px"> % · Tareas 50%</div>
 <div class="ir">Nota FFE de PVPP (por defecto) <input id="empn" type="number" min="0" max="10" step="0.01" style="max-width:74px"></div>
@@ -782,11 +782,31 @@ var slots=[];S.subj.forEach(function(n,mi){classSlots(ds,gi,mi).forEach(function
 var assigned=slots.length>0&&slots.every(function(c){var saved=S.classAtt[c.key];return saved&&saved.marks&&['P','R','F','J'].indexOf(saved.marks[ai])>=0});
 if(!assigned)rows.push({d:ds,mark:marks[ai]})});return rows
 }
-function classStats(gi,mi,ai,until){
-var out={p:0,r:0,f:0,j:0,t:0,unmarked:0,legacy:0},end=until||iso(new Date());
-Object.keys(S.classAtt).forEach(function(key){var c=S.classAtt[key];if(c.g!==gi||c.m!==mi||c.d>end)return;var u=Number(c.units)||1,v=c.marks[ai];if(v==='P')out.p+=u;else if(v==='R')out.r+=u;else if(v==='F')out.f+=u;else if(v==='J')out.j+=u;else out.unmarked+=u});
-out.legacy=pendingLegacyAttendance(gi,ai,end).length;
-out.t=out.p+out.r+out.f+out.j;out.pc=out.t?(out.p+out.r)/out.t*100:null;out.total=attendanceTotal(mi);out.absence=out.total?out.f/out.total*100:null;out.alert=out.total!==null&&out.f*100>=out.total*15;return out
+function attendanceTerm(gi,n){
+var y=secondYear(gi)?2:1,ids=['first','second','third'];
+function end(i){var id='school-'+ids[i]+'-'+y;return (S.evals.find(function(e){return e.id===id&&e.date})||SCHOOL_EVALUATIONS.find(function(e){return e.id===id})).date}
+return {n:n,a:n===1?'2026-09-14':addDays(end(n-2),1),b:end(n-1)}
+}
+function attendanceTermAt(gi,ds){for(var n=1;n<=3;n++){var t=attendanceTerm(gi,n);if(ds<=t.b)return t}return attendanceTerm(gi,3)}
+function attendanceTermPeriods(gi,mi,t){
+if(groupSubjectIndices(gi).indexOf(mi)<0)return 0;
+var name=S.subj[mi],p=planOf(mi),g=S.g[gi],end=name==='Presentación y venta al público'?attendanceTerm(gi,2).b:p?p.end:t.b,total=0;
+var slots=S.tt.filter(function(r){return r.g===g.n&&r.s===name}),extras=(S.reportExtraDates&&S.reportExtraDates[name])||[];
+for(var d=t.a;d<=t.b&&d<=end;d=addDays(d,1)){if((p&&d<p.start)||!inf(d).le||inPlacement(gi,d))continue;var w=pd(d).getDay();total+=slots.filter(function(r){return +r.d===w}).length+extras.filter(function(x){return x===d}).length}
+return total
+}
+function renderTermAlerts(){
+var out='',today=iso(new Date());
+S.g.forEach(function(g,gi){groupSubjectIndices(gi).forEach(function(mi){for(var n=1;n<=3;n++){var t=attendanceTerm(gi,n);if(t.a>today)continue;t.total=attendanceTermPeriods(gi,mi,t);if(!t.total)continue;
+g.st.forEach(function(name,ai){var st=classStats(gi,mi,ai,today,t);if(st.alert)out+='<div class="su"><div class="n">'+esc(name)+'<small>'+esc(g.n)+' · '+esc(S.subj[mi])+' · '+n+'.ª evaluación</small><small>'+st.f+' faltas injustificadas / '+t.total+' periodos del tramo</small></div><b class="attlight red">'+st.absence.toFixed(1)+' %</b></div>'})
+}})});
+$('termAttendanceAlerts').innerHTML=out?'<p class="attlight red">Umbral del 15 % alcanzado: revisar pérdida de evaluación continua.</p>'+out:'<p class="hi">No hay alertas con las faltas injustificadas registradas hasta hoy.</p>';
+}
+function classStats(gi,mi,ai,until,term){
+var out={p:0,r:0,f:0,j:0,t:0,unmarked:0,legacy:0},end=until||iso(new Date());term=term||attendanceTermAt(gi,end);end=end<term.b?end:term.b;
+Object.keys(S.classAtt).forEach(function(key){var c=S.classAtt[key];if(c.g!==gi||c.m!==mi||c.d<term.a||c.d>end)return;var u=Number(c.units)||1,v=c.marks[ai];if(v==='P')out.p+=u;else if(v==='R')out.r+=u;else if(v==='F')out.f+=u;else if(v==='J')out.j+=u;else out.unmarked+=u});
+out.legacy=pendingLegacyAttendance(gi,ai,end).filter(function(r){return r.d>=term.a}).length;
+out.t=out.p+out.r+out.f+out.j;out.pc=out.t?(out.p+out.r)/out.t*100:null;out.total=term.total===undefined?attendanceTermPeriods(gi,mi,term):term.total;out.absence=out.total?out.f/out.total*100:null;out.alert=out.total>0&&out.f*100>=out.total*15;return out
 }
 function classSummary(gi,ds){
 var rows=[];Object.keys(S.classAtt).forEach(function(key){var r=S.classAtt[key];if(r.g!==gi||r.d!==ds)return;var g=S.g[gi],parts=[];g.st.forEach(function(n,i){if(r.marks[i])parts.push(n+': '+r.marks[i])});rows.push(r.subject+' '+r.start+'–'+r.end+': '+(parts.length?parts.join(' · '):'sin marcar'))});return rows.join('\n')
@@ -794,9 +814,11 @@ var rows=[];Object.keys(S.classAtt).forEach(function(key){var r=S.classAtt[key];
 function renderClassSummary(){
 var gi=sel.sg,mi=sel.am===undefined?sel.m:sel.am,g=S.g[gi];
 groupSubjectChips($('attendanceSubjects'),gi,'am',rdia2);mi=sel.am;
-var total=attendanceTotal(mi);$('attendanceScope').textContent='Por clase y materia · '+(total?total+' periodos lectivos del módulo · umbral: '+Math.ceil(total*.15)+' faltas injustificadas':'Configura las horas del módulo en Ajustes')+'. Los registros diarios antiguos requieren revisión.';
-$('slst').innerHTML=g?g.st.map(function(n,i){var st=classStats(gi,mi,i),partial=st.unmarked||st.legacy;
-return '<div class="su"><div class="n">'+esc(n)+'<small>'+st.f+' injustificadas · '+st.j+' justificadas · '+st.t+' periodos registrados'+(st.unmarked?' · '+st.unmarked+' sin marcar':'')+(st.legacy?' · '+st.legacy+' registros anteriores sin asignar a clase':'')+'</small><small>Faltas injustificadas sobre el módulo: '+(st.absence===null?'sin horas configuradas':st.legacy?'pendiente de completar el historial (mínimo confirmado: '+st.absence.toFixed(2)+'%)':st.absence.toFixed(2)+'%')+'</small><span class="attlight '+(st.alert?'red':partial||!st.t||!st.total?'amber':'')+'">'+(st.alert?'● Umbral del 15 % alcanzado':!st.total?'● Configura las horas':partial?'● Cálculo parcial':!st.t?'● Sin registros por clase':'● Por debajo del 15 %')+'</span></div><b>'+(st.pc===null?'—':st.pc.toFixed(1)+'%')+'<small>asistencia registrada</small></b></div>'
+var today=iso(new Date());if(sel.attTerm===undefined)sel.attTerm=attendanceTermAt(gi,today).n-1;
+chips($('attendanceTerms'),['1.ª evaluación','2.ª evaluación','3.ª evaluación'],'attTerm',renderClassSummary);
+var term=attendanceTerm(gi,sel.attTerm+1),total=attendanceTermPeriods(gi,mi,term);term.total=total;renderTermAlerts();$('attendanceScope').textContent=sh(term.a)+' a '+sh(term.b)+' · '+(total?total+' periodos previstos en este tramo · aviso desde '+Math.ceil(total*15/100)+' faltas injustificadas':'Sin periodos lectivos previstos en este tramo')+'. Solo cuentan faltas injustificadas.';
+$('slst').innerHTML=g?g.st.map(function(n,i){var st=classStats(gi,mi,i,today,term),partial=st.unmarked||st.legacy;
+return '<div class="su"><div class="n">'+esc(n)+'<small>'+st.f+' injustificadas · '+st.j+' justificadas · '+st.t+' periodos registrados'+(st.unmarked?' · '+st.unmarked+' sin marcar':'')+(st.legacy?' · '+st.legacy+' registros anteriores sin asignar a clase':'')+'</small><small>Faltas injustificadas sobre este tramo: '+(st.absence===null?'no aplicable':st.legacy?'pendiente de completar el historial (mínimo confirmado: '+st.absence.toFixed(2)+'%)':st.absence.toFixed(2)+'%')+'</small><span class="attlight '+(st.alert?'red':partial||!st.t||!st.total?'amber':'')+'">'+(st.alert?'● Umbral del 15 % alcanzado':!st.total?'● Sin docencia prevista':partial?'● Cálculo parcial':!st.t?'● Sin registros por clase':'● Por debajo del 15 %')+'</span></div><b>'+(st.pc===null?'—':st.pc.toFixed(1)+'%')+'<small>asistencia registrada</small></b></div>'
 }).join(''):'<p class="ep">Sin alumnos.</p>';
 if(g){
 var legacyDates={},hasLegacy=false,rows=g.st.map(function(n,i){var old=pendingLegacyAttendance(gi,i),counts={P:0,R:0,F:0,J:0};old.forEach(function(r){if(counts[r.mark]!==undefined)counts[r.mark]++;legacyDates[r.d]=1});if(!old.length)return '';hasLegacy=true;return '<div class="su"><div class="n">'+esc(n)+'<small>'+counts.F+' faltas injustificadas · '+counts.J+' justificadas · '+counts.P+' presencias · '+counts.R+' retrasos</small></div></div>'}).join('');
@@ -1350,7 +1372,7 @@ function setv(v){V=v;var active=(v==='seg'||v==='hor')?'cal':v,ns=document.query
 function rall(){applyConfirmedCourseSubjects();autoRecoverClassAttendance();if(V==='cal')rcal();if(V==='seg')rseg();if(V==='hor')rhor();if(V==='dia')rdia();if(V==='dia2')rdia2();if(V==='prog')rprog();if(V==='plan')rplan();if(V==='not')rnot();if(V==='aj')raj()}
 
 /* ===== eventos ===== */
-$('refreshApp').onclick=async function(){if($('tx').value.trim()){tos('Guarda primero la anotación que estás escribiendo');return}this.disabled=true;this.textContent='Actualizando…';try{if('serviceWorker' in navigator){var regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(function(r){return r.update()}))}var url=new URL(location.href);url.searchParams.set('version','11');url.searchParams.set('actualizar',String(Date.now()));location.replace(url.href)}catch(e){this.disabled=false;this.textContent='Actualizar app';tos('No se ha podido actualizar. Comprueba la conexión')}};
+$('refreshApp').onclick=async function(){if($('tx').value.trim()){tos('Guarda primero la anotación que estás escribiendo');return}this.disabled=true;this.textContent='Actualizando…';try{if('serviceWorker' in navigator){var regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(function(r){return r.update()}))}var url=new URL(location.href);url.searchParams.set('version','12');url.searchParams.set('actualizar',String(Date.now()));location.replace(url.href)}catch(e){this.disabled=false;this.textContent='Actualizar app';tos('No se ha podido actualizar. Comprueba la conexión')}};
 
 var ns=document.querySelectorAll('nav button');for(var i=0;i<ns.length;i++)ns[i].onclick=function(){setv(this.getAttribute('data-v'))};
 $('calendarYear').onchange=function(){sel.calendarYear=Number(this.value);rcal()};
