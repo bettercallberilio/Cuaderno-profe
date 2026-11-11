@@ -239,7 +239,7 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 .prep-two{background:repeating-linear-gradient(135deg,#fff3e5,#fff3e5 5px,#ffe1bc 5px,#ffe1bc 7px)}
 .prep-both{background:repeating-linear-gradient(135deg,#e6d6ff,#e6d6ff 5px,#ffe1bc 5px,#ffe1bc 10px)}
 .evaltag{display:block;font-size:9px;font-weight:700;padding:2px 3px;border-radius:3px;max-width:100%;line-height:1.2}
-.evaltag.one{background:#6235a0;color:#fff}.evaltag.two{background:#a74900;color:#fff}
+.cl.eval-day{outline:2px solid #91641f;outline-offset:-2px}.evaltag .eval-year{display:block;white-space:nowrap}.calendar-eval-list{display:grid;gap:6px;margin:8px 0}.calendar-eval-list .b{text-align:left;white-space:normal}.evaltag.one{background:#6235a0;color:#fff}.evaltag.two{background:#a74900;color:#fff}
 .attlight{display:inline-block;color:#287347;font-size:12px;margin-top:5px}.attlight.red{color:#b42318;font-weight:700}.attlight.amber{color:#8a5b00}
 .su b small{display:block;font-size:10px;font-weight:400;max-width:75px}
 #classSession{max-width:100%;font-size:14px}#attendanceHours input{max-width:100px;margin-left:8px}
@@ -258,18 +258,18 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 <body>
 <header><div class="w"><h1>Cuaderno de aula <span id="syncBadge" class="syncbadge">☁ Local</span></h1>
 <nav><button class="on" data-v="cal">Calendario</button><button data-v="dia">Día</button><button data-v="dia2">Diario</button><button data-v="prog">UT</button><button data-v="not">Notas</button><button data-v="aj">Ajustes</button></nav>
-<div class="hi" id="appVersion" style="padding:4px 0 8px">Versión 12 · alertas por evaluación <button type="button" class="b" id="refreshApp">Actualizar app</button></div></div></header>
+<div class="hi" id="appVersion" style="padding:4px 0 8px">Versión 13 · alarmas en el calendario <button type="button" class="b" id="refreshApp">Actualizar app</button></div></div></header>
 <div id="globalPending" class="pendingbar hide"></div>
 <main class="w">
 <p id="storageStatus" class="hi" role="status" aria-live="polite"></p>
 
 <section id="v-cal">
-<div class="ir" style="margin-top:12px"><label for="calendarYear">Evaluaciones</label><select id="calendarYear"><option value="0">1.º y 2.º GM</option><option value="1">1.º GM</option><option value="2">2.º GM</option></select></div><p class="hi">Hitos por curso. Sombreado violeta: preparación de 1.º; naranja: 2.º. Se marcan los cuatro días naturales anteriores a la evaluación.</p>
+<div class="ir" style="margin-top:12px"><label for="calendarYear">Evaluaciones</label><select id="calendarYear"><option value="0">1.º y 2.º GM</option><option value="1">1.º GM</option><option value="2">2.º GM</option></select></div><p class="hi">🔔 Campana: día de evaluación, con el curso indicado. Violeta: preparación de 1.º; naranja: preparación de 2.º. Se sombrean los cuatro días anteriores.</p>
 <div class="mb"><button class="ar" id="pm">&lsaquo;</button><h2 id="mt"></h2><button class="ar" id="nm">&rsaquo;</button></div>
 <div class="dw" id="dw"></div><div class="gd" id="gd"></div>
 
 <div class="st" id="stt"></div>
-<div id="homeAlerts"></div>
+<div id="calendarEvalList" class="calendar-eval-list"></div><div id="homeAlerts"></div>
 <div class="rw"><button class="b g" id="ophor">Ver horario de clase</button><button class="b g p" id="opprog">Programación UT</button></div>
 <div class="lg"><span><i style="background:#fff;box-shadow:inset 0 0 0 1px var(--ru)"></i>Con clase</span><span><i style="background:var(--am)"></i>Inicio</span><span><i style="background:var(--pk)"></i>Fin</span><span><i style="background:var(--az)"></i>Festivo</span><span><i style="background:var(--ve)"></i>No lectivo</span></div>
 </section>
@@ -866,11 +866,17 @@ S.schoolCalendarRevision=SCHOOL_REVISION
 function evaluationLead(e){return e.leadDays===undefined?4:Number(e.leadDays)}
 function calendarEvaluations(){var filter=sel.calendarYear||0;return S.evals.filter(function(e){return !filter||e.year===filter||(!e.year&&(!e.group||e.group.indexOf(filter+'º')===0))})}
 function evaluationDay(ds){var events=[],prep=[];calendarEvaluations().forEach(function(e){if(e.date===ds)events.push(e);else if(!e.done&&evaluationLead(e)>0&&ds>=addDays(e.date,-evaluationLead(e))&&ds<e.date)prep.push(e)});return{events:events,prep:prep}}
-function evaluationCalendarClass(ds){var info=evaluationDay(ds),one=false,two=false;info.prep.forEach(function(e){if(e.year===1)one=true;else if(e.year===2)two=true;else one=two=true});return one&&two?' prep-both':one?' prep-one':two?' prep-two':''}
-function evaluationCalendarBadges(ds){var info=evaluationDay(ds);return info.events.map(function(e){return '<span class="evaltag '+(e.year===2?'two':'one')+'">'+esc((e.year?e.year+'º ':'')+(e.short||'Eval'))+'</span>'}).join('')}
+function evaluationCalendarClass(ds){var info=evaluationDay(ds),one=false,two=false;info.prep.forEach(function(e){if(e.year===1)one=true;else if(e.year===2)two=true;else one=two=true});return (info.events.length?' eval-day':'')+(one&&two?' prep-both':one?' prep-one':two?' prep-two':'')}
+function evaluationCourse(e){return e.year===1?'1.º GM':e.year===2?'2.º GM':e.group||'Todos los grupos'}
+function evaluationCalendarBadges(ds){return evaluationDay(ds).events.map(function(e){return '<span class="evaltag '+(e.year===2?'two':'one')+'" aria-label="'+esc(e.subject+' · '+evaluationCourse(e))+'"><span class="eval-year">🔔 '+esc(e.year?e.year+'.º':'')+'</span>'+esc(e.short||'Eval.')+'</span>'}).join('')}
+function renderCalendarEvalList(y,m){
+var month=y+'-'+p2(m+1)+'-',host=$('calendarEvalList');
+host.innerHTML=calendarEvaluations().filter(function(e){return e.date.indexOf(month)===0}).sort(function(a,b){return a.date.localeCompare(b.date)||(a.year||0)-(b.year||0)}).map(function(e){return '<button type="button" class="b" data-eval-date="'+esc(e.date)+'">🔔 <b>'+esc(sh(e.date))+' · '+esc(evaluationCourse(e))+'</b> · '+esc(e.subject)+'</button>'}).join('');
+host.querySelectorAll('[data-eval-date]').forEach(function(btn){btn.onclick=function(){day=pd(this.getAttribute('data-eval-date'));setv('dia')}})
+}
 function evaluationCalendarTitle(ds){var info=evaluationDay(ds),a=[];info.events.forEach(function(e){a.push(e.subject+' · '+(e.group||'todos los grupos'))});info.prep.forEach(function(e){a.push('Preparar y corregir · '+e.subject+' · '+(e.group||'todos los grupos')+' · '+sh(e.date))});return a.join(' / ')}
 function schoolDayHtml(ds){
-var info=evaluationDay(ds),out='';info.events.forEach(function(e){out+='<div class="noteinfo"><b>'+esc(e.subject)+'</b> · '+esc(e.group||'Todos los grupos')+'</div>'});
+var info=evaluationDay(ds),out='';info.events.forEach(function(e){out+='<div class="alertbox"><b>🔔 '+esc(e.subject)+'</b> · '+esc(evaluationCourse(e))+'</div>'});
 if(info.prep.length)out+='<div class="alertbox"><b>Preparación y corrección</b>'+info.prep.map(function(e){return esc(e.subject)+' · '+esc(e.group||'Todos')+' · '+sh(e.date)}).join('<br>')+'</div>';
 if(ds>='2027-03-04'&&ds<='2027-06-16')out+='<div class="noteinfo">2.º de grado medio en FCT del 4 de marzo al 16 de junio. Las clases de 1.º se mantienen según su horario.</div>';return out
 }
@@ -934,7 +940,7 @@ for(var t in ts2)if(TY[t])dd+='<i style="background:'+TY[t][2]+'"></i>';
 if(Object.keys(S.classAtt).some(function(key){var r=S.classAtt[key];return r.d===ds&&Object.keys(r.marks).length}))dd+='<i style="background:var(--ok)"></i>';
 for(var gi=0;gi<S.g.length;gi++)if(S.att[ak(ds,gi)]){dd+='<i style="background:var(--ok)"></i>';break}
 h+='<button class="'+c+'" title="'+esc(evaluationCalendarTitle(ds))+'" data-d="'+ds+'"><span class="nu">'+n+'</span><span class="dt">'+dd+'</span>'+evaluationCalendarBadges(ds)+'</button>'}
-$('gd').innerHTML=h;
+$('gd').innerHTML=h;renderCalendarEvalList(y,m);
 var bs=$('gd').querySelectorAll('button');for(var i=0;i<bs.length;i++)bs[i].onclick=function(){day=pd(this.getAttribute('data-d'));setv('dia')};
 var mes=cdb(y+'-'+p2(m+1)+'-01',y+'-'+p2(m+1)+'-'+p2(nd));
 var res=TD<'2027-06-30'?cdb(TD>'2026-09-01'?TD:'2026-09-01','2027-06-30'):0;
@@ -1372,7 +1378,7 @@ function setv(v){V=v;var active=(v==='seg'||v==='hor')?'cal':v,ns=document.query
 function rall(){applyConfirmedCourseSubjects();autoRecoverClassAttendance();if(V==='cal')rcal();if(V==='seg')rseg();if(V==='hor')rhor();if(V==='dia')rdia();if(V==='dia2')rdia2();if(V==='prog')rprog();if(V==='plan')rplan();if(V==='not')rnot();if(V==='aj')raj()}
 
 /* ===== eventos ===== */
-$('refreshApp').onclick=async function(){if($('tx').value.trim()){tos('Guarda primero la anotación que estás escribiendo');return}this.disabled=true;this.textContent='Actualizando…';try{if('serviceWorker' in navigator){var regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(function(r){return r.update()}))}var url=new URL(location.href);url.searchParams.set('version','12');url.searchParams.set('actualizar',String(Date.now()));location.replace(url.href)}catch(e){this.disabled=false;this.textContent='Actualizar app';tos('No se ha podido actualizar. Comprueba la conexión')}};
+$('refreshApp').onclick=async function(){if($('tx').value.trim()){tos('Guarda primero la anotación que estás escribiendo');return}this.disabled=true;this.textContent='Actualizando…';try{if('serviceWorker' in navigator){var regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(function(r){return r.update()}))}var url=new URL(location.href);url.searchParams.set('version','13');url.searchParams.set('actualizar',String(Date.now()));location.replace(url.href)}catch(e){this.disabled=false;this.textContent='Actualizar app';tos('No se ha podido actualizar. Comprueba la conexión')}};
 
 var ns=document.querySelectorAll('nav button');for(var i=0;i<ns.length;i++)ns[i].onclick=function(){setv(this.getAttribute('data-v'))};
 $('calendarYear').onchange=function(){sel.calendarYear=Number(this.value);rcal()};
