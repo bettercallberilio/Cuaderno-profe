@@ -76,6 +76,7 @@ textarea{width:100%;min-height:90px;border:1px solid var(--ru);border-radius:10p
 .b.d{color:var(--rd);border-color:#f0c9c7}
 .hi{font-size:12.5px;color:var(--fa);margin:8px 0 0;line-height:1.5}
 .sr{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--gr)}
+.roll-risk{display:block;font-size:12px;font-weight:700;line-height:1.35;margin-top:3px}.roll-risk.watch{color:#765100}.roll-risk.danger{color:#a21626}.module-hours{margin:8px 0;padding:8px 10px;border-radius:8px;background:#eef4fa;color:#22405e}.module-hours.danger{background:#fff0f1;color:#a21626}
 .sr .n{flex:1;min-width:0;font-size:14.5px;overflow-wrap:anywhere}
 .mk{display:flex;gap:3px}
 .mk button{width:33px;height:33px;padding:0;border:1px solid var(--ru);border-radius:8px;background:#fff;font-size:13px;font-weight:700;color:var(--fa)}
@@ -258,7 +259,7 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 <body>
 <header><div class="w"><h1>Cuaderno de aula <span id="syncBadge" class="syncbadge">☁ Local</span></h1>
 <nav><button class="on" data-v="cal">Calendario</button><button data-v="dia">Día</button><button data-v="dia2">Diario</button><button data-v="prog">UT</button><button data-v="not">Notas</button><button data-v="aj">Ajustes</button></nav>
-<div class="hi" id="appVersion" style="padding:4px 0 8px">Versión 13 · alarmas en el calendario <button type="button" class="b" id="refreshApp">Actualizar app</button></div></div></header>
+<div class="hi" id="appVersion" style="padding:4px 0 8px">Versión 14 · riesgo de faltas y horas lectivas <button type="button" class="b" id="refreshApp">Actualizar app</button></div></div></header>
 <div id="globalPending" class="pendingbar hide"></div>
 <main class="w">
 <p id="storageStatus" class="hi" role="status" aria-live="polite"></p>
@@ -297,8 +298,8 @@ select.full,input.full{width:100%;border:1px solid var(--ru);border-radius:8px;p
 <section id="v-dia" class="hide">
 <div class="bar"><button class="ar" id="pd">&lsaquo;</button><input type="date" id="dp"><button class="ar" id="nd">&rsaquo;</button></div>
 <div class="tg" id="dtg"></div><div id="schoolDayInfo"></div>
-<div class="card"><h3>Asistencia</h3><div class="ch" id="ag"></div><div class="lb">Materia de esta clase</div><div class="ch" id="attendanceModules"></div><label class="lb" for="classSession">Clase y hora</label><div class="ir"><select id="classSession" style="width:100%;padding:10px"></select></div><div id="legacyClass"></div><div id="alst"></div>
-<p class="hi" id="asum"></p><div class="rw"><button class="b" id="allp">Todos presentes</button></div>
+<div class="card"><h3>Asistencia</h3><div class="ch" id="ag"></div><div class="lb">Materia de esta clase</div><div class="ch" id="attendanceModules"></div><div id="moduleHours" class="module-hours" role="status"></div><label class="lb" for="classSession">Clase y hora</label><div class="ir"><select id="classSession" style="width:100%;padding:10px"></select></div><div id="legacyClass"></div><div id="alst"></div>
+<p class="hi" id="asum"></p><p class="hi" id="rollRiskScope"></p><div class="rw"><button class="b" id="allp">Todos presentes</button></div>
 <p class="hi">P presente · R retraso · F falta · J justificada. Pulsa otra vez para desmarcar. Cada franja horaria tiene su propia lista. F cuenta como injustificada; J queda excluida del umbral del 15 %. Una franja equivale a un periodo lectivo del horario.</p></div>
 <div class="card"><h3>Qué ha pasado</h3>
 <div class="lb">Grupo</div><div class="ch" id="cg"></div>
@@ -1044,7 +1045,21 @@ chips($('cg'),gn(),'g',function(){selectDayGroup(sel.g)});
 rdayModules();
 chips($('ct'),TY.map(function(x){return x[1]}),'t',function(){rdaymeta(true)});
 rdaymeta(true);ratt();rent()}
+function renderModuleHours(){
+var el=$('moduleHours'),p=planOf(sel.m),name=S.subj[sel.m];el.className='module-hours';
+if(!p||!p.target){el.textContent=name?'Sin horas lectivas previstas para esta materia.':'';el.hidden=!name;return}
+el.hidden=false;
+var today=iso(new Date()),actual=actualBetween(name,p.start,today,sel.ag),left=Math.round((p.target-actual)*100)/100;
+if(left<0)el.className+=' danger';
+el.textContent=(left<0?'Exceso: '+(-left)+' h lectivas':left===0?'0 h lectivas pendientes · previsión completada':'Quedan '+left+' h lectivas')+' · '+actual+' de '+p.target+' sesiones previstas. Según «Lo trabajado» registrado.';
+}
+function rollRisk(st,n){
+if(!st.total||st.f*100<st.total*10)return '';
+var danger=st.alert,pct=st.absence.toLocaleString('es-ES',{maximumFractionDigits:2});
+return '<small class="roll-risk '+(danger?'danger':'watch')+'">'+(danger?'Umbral alcanzado':'En riesgo')+' · '+pct+' % · '+st.f+'/'+st.total+' periodos · '+n+'.ª eval.</small>'
+}
 function ratt(){
+renderModuleHours();$('rollRiskScope').textContent='';
 var g=S.g[sel.ag],ds=iso(day);$('allp').disabled=true;
 if(!g){$('alst').innerHTML='<p class="ep">Añade un grupo en Ajustes.</p>';$('asum').textContent='';return}
 var slots=classSlots(ds,sel.ag,sel.m),active=slots.find(function(r){return r.key===sel.classKey});
@@ -1054,8 +1069,10 @@ $('classSession').innerHTML=slots.length?slots.map(function(r){return '<option v
 $('classSession').value=active?active.key:'';$('classSession').onchange=function(){sel.classKey=this.value;ratt();rdaymeta(true)};
 $('legacyClass').innerHTML=classLegacyHtml(ds,sel.ag);var legacyButton=$('assignLegacyClass');if(legacyButton)legacyButton.onclick=assignLegacyClass;
 if(!active){$('alst').innerHTML='<p class="ep">Elige una materia con clase este día. Si falta una franja, revisa el horario en Calendario.</p>';$('asum').textContent='No se registra una ausencia si no hay una clase seleccionada.';return}
-$('allp').disabled=false;var r=active.marks;
-$('alst').innerHTML=g.st.map(function(n,i){return '<div class="sr"><span class="n">'+esc(n)+'</span><span class="mk">'+['P','R','F','J'].map(function(m){return '<button data-m="'+m+'" data-i="'+i+'" class="'+(r[i]===m?m:'')+'">'+m+'</button>'}).join('')+'</span></div>'}).join('')||'<p class="ep">Este grupo no tiene alumnos.</p>';
+$('allp').disabled=false;var r=active.marks,term=attendanceTermAt(sel.ag,ds);term.total=attendanceTermPeriods(sel.ag,sel.m,term);
+var today=iso(new Date()),cut=ds<today?ds:today;
+if(term.total&&ds<=term.b)$('rollRiskScope').textContent=term.n+'.ª evaluación · solo faltas injustificadas · ámbar desde el 10 %, rojo desde el 15 %.';
+$('alst').innerHTML=g.st.map(function(n,i){return '<div class="sr"><span class="n">'+esc(n)+(ds<=term.b?rollRisk(classStats(sel.ag,sel.m,i,cut,term),term.n):'')+'</span><span class="mk">'+['P','R','F','J'].map(function(m){return '<button data-m="'+m+'" data-i="'+i+'" class="'+(r[i]===m?m:'')+'">'+m+'</button>'}).join('')+'</span></div>'}).join('')||'<p class="ep">Este grupo no tiene alumnos.</p>';
 var bs=$('alst').querySelectorAll('.mk button');for(var i=0;i<bs.length;i++)bs[i].onclick=function(){writeClassMark(this.getAttribute('data-i'),this.getAttribute('data-m'),false)};
 var c={P:0,R:0,F:0,J:0},n=0;for(var x in r){if(c[r[x]]!==undefined){c[r[x]]++;n++}}
 $('asum').textContent=active.start+'–'+active.end+' · '+active.subject+' · '+c.P+' presentes · '+c.R+' retrasos · '+c.F+' injustificadas · '+c.J+' justificadas'+(g.st.length-n?' · '+(g.st.length-n)+' sin marcar':'')
@@ -1312,8 +1329,8 @@ var md=pd(k+'-01'),last=new Date(md.getFullYear(),md.getMonth()+1,0),tot=0,el=0,
 while(d<=last){var s=iso(d),v=plannedOnDate(plan,s);tot+=v;if(s<=end)el+=v;d.setDate(d.getDate()+1)}
 n+=tot?Math.round(mp*el/tot):(end>=k+'-01'?mp:0);break}
 return n}
-function actualBetween(name,a,b){var mi=subjectIndex(name);if(mi<0)return 0;var n=0,seenClasses={};
-for(var i=0;i<S.ent.length;i++){var e=S.ent[i];if(e.t!==0||e.m!==mi||e.d<a||e.d>b)continue;if(e.classKey){if(seenClasses[e.classKey])continue;seenClasses[e.classKey]=true}
+function actualBetween(name,a,b,gi){var mi=subjectIndex(name);if(mi<0)return 0;var n=0,seenClasses={};
+for(var i=0;i<S.ent.length;i++){var e=S.ent[i];if(e.t!==0||e.m!==mi||(gi!==undefined&&e.g!==gi)||e.d<a||e.d>b)continue;if(e.classKey){if(seenClasses[e.classKey])continue;seenClasses[e.classKey]=true}
 var v=Number(e.ses);if(!v||v<1){var p=planByName(name);v=p?(p.schedule[pd(e.d).getDay()]||1):1}n+=v}return n}
 function actualMonth(name,ym){var a=ym+'-01',d=pd(a),b=ym+'-'+p2(new Date(d.getFullYear(),d.getMonth()+1,0).getDate());return actualBetween(name,a,b)}
 function lastUT(name,ds){var mi=subjectIndex(name),mx=S.mx[name],best=null;if(mi<0||!mx)return null;
@@ -1378,7 +1395,7 @@ function setv(v){V=v;var active=(v==='seg'||v==='hor')?'cal':v,ns=document.query
 function rall(){applyConfirmedCourseSubjects();autoRecoverClassAttendance();if(V==='cal')rcal();if(V==='seg')rseg();if(V==='hor')rhor();if(V==='dia')rdia();if(V==='dia2')rdia2();if(V==='prog')rprog();if(V==='plan')rplan();if(V==='not')rnot();if(V==='aj')raj()}
 
 /* ===== eventos ===== */
-$('refreshApp').onclick=async function(){if($('tx').value.trim()){tos('Guarda primero la anotación que estás escribiendo');return}this.disabled=true;this.textContent='Actualizando…';try{if('serviceWorker' in navigator){var regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(function(r){return r.update()}))}var url=new URL(location.href);url.searchParams.set('version','13');url.searchParams.set('actualizar',String(Date.now()));location.replace(url.href)}catch(e){this.disabled=false;this.textContent='Actualizar app';tos('No se ha podido actualizar. Comprueba la conexión')}};
+$('refreshApp').onclick=async function(){if($('tx').value.trim()){tos('Guarda primero la anotación que estás escribiendo');return}this.disabled=true;this.textContent='Actualizando…';try{if('serviceWorker' in navigator){var regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(function(r){return r.update()}))}var url=new URL(location.href);url.searchParams.set('version','14');url.searchParams.set('actualizar',String(Date.now()));location.replace(url.href)}catch(e){this.disabled=false;this.textContent='Actualizar app';tos('No se ha podido actualizar. Comprueba la conexión')}};
 
 var ns=document.querySelectorAll('nav button');for(var i=0;i<ns.length;i++)ns[i].onclick=function(){setv(this.getAttribute('data-v'))};
 $('calendarYear').onchange=function(){sel.calendarYear=Number(this.value);rcal()};
@@ -1403,7 +1420,7 @@ $('sv').onclick=function(){var t=$('tx').value.trim();if(!t){$('mh').textContent
 if(groupSubjectIndices(sel.g).indexOf(sel.m)<0){$('mh').textContent='Selecciona una materia de este curso.';rdayModules();return}
 stop();var e={id:Date.now(),d:iso(day),g:sel.g,m:sel.m,t:sel.t,x:t};
 if(sel.t===0){var mx=mxOf(sel.m),p=planOf(sel.m);if(mx)e.u=sel.du;if(p){var sv=parseInt($('ses').value,10);e.ses=isNaN(sv)||sv<1?defaultSessions(sel.m,e.d):sv}}
-if(e.t===0){var attended=selectedClass();if(attended&&attended.g===e.g&&attended.m===e.m&&Number(e.ses)===Number(attended.units)){e.classKey=attended.key;e.start=attended.start;e.end=attended.end}}S.ent.push(e);if(!save()){S.ent.pop();$('mh').textContent='No guardado. El texto se conserva para que puedas reintentar.';return}$('tx').value='';rent();$('mh').textContent='Guardado: '+sh(e.d)+' · '+(S.g[e.g]?S.g[e.g].n:'')+' · '+S.subj[e.m]+entryMeta(e)};
+if(e.t===0){var attended=selectedClass();if(attended&&attended.g===e.g&&attended.m===e.m&&Number(e.ses)===Number(attended.units)){e.classKey=attended.key;e.start=attended.start;e.end=attended.end}}S.ent.push(e);if(!save()){S.ent.pop();$('mh').textContent='No guardado. El texto se conserva para que puedas reintentar.';return}$('tx').value='';rent();renderModuleHours();$('mh').textContent='Guardado: '+sh(e.d)+' · '+(S.g[e.g]?S.g[e.g].n:'')+' · '+S.subj[e.m]+entryMeta(e)};
 
 var SR=window.SpeechRecognition||window.webkitSpeechRecognition,rc=null,on=false,bs2='';
 function stop(){on=false;if(rc){try{rc.onend=null;rc.stop()}catch(e){}rc=null}$('mic').className='b g';$('mic').textContent='Dictar'}
